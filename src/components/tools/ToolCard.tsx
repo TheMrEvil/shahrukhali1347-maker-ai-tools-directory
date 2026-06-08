@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Star, Bookmark, TrendingUp, CheckCircle, ExternalLink, ArrowUpRight } from 'lucide-react';
+import { Star, Bookmark, TrendingUp, CheckCircle, ExternalLink, ArrowUpRight, ShieldCheck } from 'lucide-react';
 import { AITool } from '@/types';
 import { getPricingLabel } from '@/lib/utils';
 
@@ -10,9 +10,29 @@ interface ToolCardProps {
   tool: AITool;
 }
 
+// Returns a relative-time label for a listing's dateUpdated, but only if the
+// listing was reviewed within the last 60 days. The `fresh` flag turns the
+// badge a stronger green when the review is within 14 days.
+function formatReviewed(iso: string): { label: string; fresh: boolean } | null {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const days = Math.floor((Date.now() - d.getTime()) / 86400000);
+  if (days > 60) return null;
+  const label =
+    days <= 0
+      ? 'today'
+      : days === 1
+      ? '1 day ago'
+      : days < 30
+      ? `${days} days ago`
+      : `${Math.round(days / 7)} weeks ago`;
+  return { label, fresh: days <= 14 };
+}
+
 export default function ToolCard({ tool }: ToolCardProps) {
   const pricingLabel = getPricingLabel(tool.pricing);
   const [imgError, setImgError] = useState(false);
+  const reviewed = formatReviewed(tool.dateUpdated);
 
   // Get initials for fallback
   const getInitials = (name: string) => {
@@ -93,8 +113,8 @@ export default function ToolCard({ tool }: ToolCardProps) {
         </div>
 
         {/* Badges row */}
-        {(tool.verified || tool.trending) && (
-          <div className="flex items-center gap-1.5 mb-2">
+        {(tool.verified || tool.trending || reviewed) && (
+          <div className="flex flex-wrap items-center gap-1.5 mb-2">
             {tool.verified && (
               <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-semibold rounded-md">
                 <CheckCircle className="w-3 h-3" />
@@ -105,6 +125,19 @@ export default function ToolCard({ tool }: ToolCardProps) {
               <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-semibold rounded-md">
                 <TrendingUp className="w-3 h-3" />
                 Hot
+              </div>
+            )}
+            {reviewed && (
+              <div
+                title={`Listing reviewed by editors on ${tool.dateUpdated}`}
+                className={`flex items-center gap-1 px-2 py-0.5 text-xs font-semibold rounded-md ${
+                  reviewed.fresh
+                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                    : 'bg-gray-100 dark:bg-gray-700/40 text-gray-600 dark:text-gray-300'
+                }`}
+              >
+                <ShieldCheck className="w-3 h-3" />
+                Reviewed {reviewed.label}
               </div>
             )}
           </div>
