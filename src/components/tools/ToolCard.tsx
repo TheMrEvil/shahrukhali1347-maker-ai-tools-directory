@@ -2,9 +2,30 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Star, Bookmark, TrendingUp, CheckCircle, ExternalLink, ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Bookmark, CheckCircle, ExternalLink, ShieldCheck, Sparkles, Star, TrendingUp } from 'lucide-react';
 import { AITool } from '@/types';
 import { getPricingLabel } from '@/lib/utils';
+import { getAccent, getInitials } from '@/lib/accent';
+import Spotlight from '@/components/Spotlight';
+
+function formatReviewed(iso: string): { label: string; fresh: boolean } | null {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  const days = Math.floor((Date.now() - d.getTime()) / 86400000);
+  // Only show within 60 days; "fresh" means within 14 days for stronger badge.
+  if (days > 60) return null;
+  const label =
+    days <= 0
+      ? 'today'
+      : days === 1
+      ? '1 day ago'
+      : days < 30
+      ? `${days} days ago`
+      : days < 60
+      ? `${Math.round(days / 7)} weeks ago`
+      : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return { label, fresh: days <= 14 };
+}
 
 interface ToolCardProps {
   tool: AITool;
@@ -14,145 +35,161 @@ export default function ToolCard({ tool }: ToolCardProps) {
   const pricingLabel = getPricingLabel(tool.pricing);
   const [imgError, setImgError] = useState(false);
 
-  // Get initials for fallback
-  const getInitials = (name: string) => {
-    return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-  };
+  const accent = getAccent(tool.name);
+  const initials = getInitials(tool.name);
+  const reviewed = formatReviewed(tool.dateUpdated);
+
+  const pricingPill =
+    pricingLabel === 'Free'
+      ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
+      : pricingLabel === 'Freemium'
+      ? 'border-sky-300 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-300'
+      : 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300';
+
+  const accentStyle = {
+    '--accent-from': accent.from,
+    '--accent-to': accent.to,
+  } as React.CSSProperties;
 
   return (
-    <div className="group relative bg-white dark:bg-gray-800/90 rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 dark:border-gray-700/50 flex flex-col h-full backdrop-blur-sm">
-      {/* Gradient border effect on hover */}
-      <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-purple-500/20 via-pink-500/20 to-cyan-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-xl" />
+    <Spotlight
+      className="group lift sheen relative isolate flex h-full flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5"
+      style={accentStyle}
+    >
+      <span className="accent-bar" aria-hidden="true" />
 
-      {/* Clean Image Container */}
-      <div className="relative p-4 pb-0">
-        <div className="relative h-36 rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700">
-          {/* Logo Container - clean white background */}
-          <div className="absolute inset-0 flex items-center justify-center p-6">
+      <Link
+        href={`/tools/${tool.slug}`}
+        className="absolute inset-0 z-0 rounded-2xl"
+        aria-label={tool.name}
+      />
+
+      <div className="relative z-10 flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div
+            className="grid h-12 w-12 flex-shrink-0 place-items-center overflow-hidden rounded-xl border transition-transform duration-300 group-hover:scale-105"
+            style={{ background: accent.tile, borderColor: accent.ring }}
+          >
             {!imgError ? (
               <img
                 src={tool.logo}
-                alt={`${tool.name} AI tool logo`}
-                className="max-w-full max-h-full w-auto h-auto object-contain group-hover:scale-105 transition-transform duration-500"
+                alt={`${tool.name} logo`}
+                className="h-7 w-7 object-contain"
                 onError={() => setImgError(true)}
                 loading="lazy"
                 decoding="async"
               />
             ) : (
-              /* Clean text fallback - no gradient */
-              <span className="text-3xl font-bold text-gray-400 dark:text-gray-500">
-                {getInitials(tool.name)}
+              <span className="text-sm font-bold" style={{ color: accent.text }}>
+                {initials}
               </span>
             )}
           </div>
-
-          {/* Floating badges */}
-          <div className="absolute top-2 left-2 flex flex-wrap gap-1.5 z-10">
-            <div className={`px-2.5 py-1 text-xs font-bold rounded-lg backdrop-blur-md shadow-lg ${
-              pricingLabel === 'Free'
-                ? 'bg-emerald-500/90 text-white'
-                : pricingLabel === 'Freemium'
-                ? 'bg-blue-500/90 text-white'
-                : 'bg-white/90 dark:bg-gray-900/90 text-gray-900 dark:text-white'
-            }`}>
-              {pricingLabel}
+          <div className="min-w-0">
+            <h3 className="truncate text-base font-semibold text-[var(--fg)] transition-colors group-hover:text-[var(--brand)]">
+              {tool.name}
+            </h3>
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs">
+              <span className="inline-flex items-center gap-0.5">
+                <Star className="h-3.5 w-3.5 fill-[var(--accent)] text-[var(--accent)]" />
+                <span className="font-semibold text-[var(--fg)]">{tool.rating.average.toFixed(1)}</span>
+              </span>
+              <span className="text-[var(--muted)]">·</span>
+              <span className="text-[var(--muted)]">{tool.rating.count.toLocaleString()}</span>
+              {reviewed && (
+                <>
+                  <span className="text-[var(--muted)]">·</span>
+                  <span
+                    className={`inline-flex items-center gap-1 ${
+                      reviewed.fresh
+                        ? 'font-medium text-emerald-600 dark:text-emerald-400'
+                        : 'text-[var(--muted)]'
+                    }`}
+                    title={`Listing reviewed by editors on ${tool.dateUpdated}`}
+                  >
+                    <ShieldCheck className="h-3 w-3" />
+                    Reviewed {reviewed.label}
+                  </span>
+                </>
+              )}
             </div>
           </div>
+        </div>
 
-
-          {/* Quick visit button on hover */}
-          <div className="absolute bottom-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-            <a
-              href={tool.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 px-2.5 py-1 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-lg text-xs font-semibold text-gray-900 dark:text-white shadow-lg hover:scale-105 transition-transform"
-            >
-              Visit
-              <ArrowUpRight className="w-3 h-3" />
-            </a>
-          </div>
+        <div className="flex flex-col items-end gap-1">
+          {tool.trending && (
+            <span className="halo inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+              <TrendingUp className="h-3 w-3" /> Hot
+            </span>
+          )}
+          {tool.featured && !tool.trending && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-soft)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand-strong)]">
+              <Sparkles className="h-3 w-3" /> Pick
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Tool Info */}
-      <div className="p-4 pt-3 flex flex-col flex-1">
-        {/* Header with name and rating */}
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <Link href={`/tools/${tool.slug}`} className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition-colors truncate">
-              {tool.name}
-            </h3>
-          </Link>
-          <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 dark:bg-amber-900/20 rounded-lg flex-shrink-0">
-            <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-            <span className="text-sm font-bold text-amber-700 dark:text-amber-400">
-              {tool.rating.average}
-            </span>
-          </div>
-        </div>
+      <p className="relative z-10 mt-4 line-clamp-2 text-sm text-[var(--fg-soft)]">
+        {tool.tagline}
+      </p>
 
-        {/* Badges row */}
-        {(tool.verified || tool.trending) && (
-          <div className="flex items-center gap-1.5 mb-2">
-            {tool.verified && (
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-semibold rounded-md">
-                <CheckCircle className="w-3 h-3" />
-                Verified
-              </div>
-            )}
-            {tool.trending && (
-              <div className="flex items-center gap-1 px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 text-xs font-semibold rounded-md">
-                <TrendingUp className="w-3 h-3" />
-                Hot
-              </div>
-            )}
-          </div>
-        )}
+      <div className="relative z-10 mt-4 flex flex-wrap gap-1.5">
+        {tool.tags.slice(0, 3).map((tag) => (
+          <span
+            key={tag}
+            className="rounded-full border border-[var(--border)] bg-[var(--bg-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--fg-soft)] transition group-hover:border-[var(--border)] group-hover:bg-[var(--bg)]"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
 
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2 leading-relaxed">
-          {tool.tagline}
-        </p>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {tool.tags.slice(0, 3).map((tag) => (
+      <div className="relative z-10 mt-5 flex items-center justify-between gap-2 border-t border-[var(--border)] pt-4">
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${pricingPill}`}
+          >
+            {pricingLabel}
+          </span>
+          {tool.verified && (
             <span
-              key={tag}
-              className="text-xs px-2.5 py-1 bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 rounded-lg font-medium"
+              title="Verified"
+              className="inline-flex items-center gap-0.5 rounded-full border border-[var(--border)] bg-[var(--bg-soft)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--fg-soft)]"
             >
-              {tag}
+              <CheckCircle className="h-2.5 w-2.5 text-emerald-500" />
+              Verified
             </span>
-          ))}
+          )}
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2 mt-auto">
-          <Link
-            href={`/tools/${tool.slug}`}
-            className="flex-1 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300 text-sm font-semibold text-center"
-          >
-            View Details
-          </Link>
-
+        <div className="flex items-center gap-1">
           <button
-            className="p-2.5 bg-gray-100 dark:bg-gray-700/50 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors group/btn"
-            aria-label="Bookmark tool"
+            type="button"
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Bookmark"
+            className="relative z-20 grid h-7 w-7 place-items-center rounded-full border border-[var(--border)] text-[var(--muted)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)] hover:text-[var(--brand)]"
           >
-            <Bookmark className="w-4 h-4 text-gray-500 dark:text-gray-400 group-hover/btn:text-purple-600 dark:group-hover/btn:text-purple-400 transition-colors" />
+            <Bookmark className="h-3 w-3" />
           </button>
-
           <a
             href={tool.website}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2.5 bg-gray-100 dark:bg-gray-700/50 rounded-xl hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors group/btn"
+            onClick={(e) => e.stopPropagation()}
+            className="relative z-20 grid h-7 w-7 place-items-center rounded-full border border-[var(--border)] text-[var(--muted)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)] hover:text-[var(--brand)]"
             aria-label="Visit website"
           >
-            <ExternalLink className="w-4 h-4 text-gray-500 dark:text-gray-400 group-hover/btn:text-purple-600 dark:group-hover/btn:text-purple-400 transition-colors" />
+            <ExternalLink className="h-3 w-3" />
           </a>
+          <span
+            aria-hidden="true"
+            className="grid h-7 w-7 place-items-center rounded-full text-[var(--muted)] transition group-hover:bg-[var(--brand)] group-hover:text-white"
+          >
+            <ArrowUpRight className="h-4 w-4 nudge" />
+          </span>
         </div>
       </div>
-    </div>
+    </Spotlight>
   );
 }

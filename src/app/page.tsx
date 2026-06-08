@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import HeroSection from '@/components/home/HeroSection';
+import ToolMarquee from '@/components/home/ToolMarquee';
 import FeaturedTools from '@/components/home/FeaturedTools';
 import RecentlyAdded from '@/components/home/RecentlyAdded';
 import CategoriesGrid from '@/components/home/CategoriesGrid';
@@ -42,10 +43,11 @@ export default function Home() {
       <StructuredData data={generateFAQSchema(faqs)} />
 
       <HeroSection />
+      <ToolMarquee />
       <FeaturedTools />
-      <RecentlyAdded />
       <CategoriesGrid />
       <TrendingTools />
+      <RecentlyAdded />
       <StatsSection />
       <NewsletterCTA />
     </>

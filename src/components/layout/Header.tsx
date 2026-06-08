@@ -2,95 +2,81 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, Search, Sparkles, Zap } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Menu, Search, Sparkles } from 'lucide-react';
 import { NAV_LINKS } from '@/config/site';
 import ThemeToggle from '@/components/ThemeToggle';
 import MobileNav from './MobileNav';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+  const isActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   return (
-    <header className="sticky top-0 z-50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-800/50">
-      {/* Gradient line at top */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-purple-500 via-pink-500 to-cyan-500" />
+    <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/85 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8">
+        <Link href="/" className="flex items-center gap-2.5">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-[var(--brand)] text-white">
+            <Sparkles className="h-4 w-4" strokeWidth={2.2} />
+          </span>
+          <span className="text-[15px] font-semibold tracking-tight">
+            Best<span className="text-[var(--brand)]">AI</span>Tools
+          </span>
+        </Link>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl blur-md opacity-50 group-hover:opacity-75 transition-opacity" />
-              <div className="relative w-10 h-10 bg-gradient-to-br from-purple-500 via-pink-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                Best AI Tools
-              </span>
-              <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium -mt-0.5">
-                Discover the best AI tools
-              </span>
-            </div>
+        <nav className="hidden items-center gap-7 md:flex">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`under text-sm font-medium transition ${
+                isActive(link.href)
+                  ? 'text-[var(--brand)]'
+                  : 'text-[var(--fg-soft)] hover:text-[var(--fg)]'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }));
+            }}
+            aria-label="Open search"
+            className="hidden sm:inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-soft)] px-3 py-1.5 text-sm text-[var(--muted)] transition hover:border-[var(--fg-soft)] hover:text-[var(--fg)]"
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span className="hidden lg:inline">Search tools</span>
+            <kbd className="ml-2 hidden lg:inline-flex items-center rounded border border-[var(--border)] bg-[var(--surface)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--muted)]">
+              ⌘K
+            </kbd>
+          </button>
+
+          <ThemeToggle />
+
+          <Link
+            href="/tools"
+            className="hidden md:inline-flex items-center rounded-full bg-[var(--brand)] px-4 py-1.5 text-sm font-medium text-white transition hover:bg-[var(--brand-strong)]"
+          >
+            Browse
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="relative px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-lg hover:text-gray-900 dark:hover:text-white transition-all group"
-              >
-                <span className="relative z-10">{link.label}</span>
-                <span className="absolute inset-0 bg-gray-100 dark:bg-gray-800 rounded-lg scale-0 group-hover:scale-100 transition-transform origin-center" />
-              </Link>
-            ))}
-          </nav>
-
-          {/* Right side actions */}
-          <div className="flex items-center gap-3">
-            {/* Search button — opens Cmd+K palette */}
-            <button
-              type="button"
-              onClick={() => {
-                window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, ctrlKey: true }));
-              }}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-100/80 dark:bg-gray-800/80 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50 hover:border-purple-300 dark:hover:border-purple-600 group"
-              aria-label="Open search"
-            >
-              <Search className="w-4 h-4 group-hover:text-purple-500 transition-colors" />
-              <span className="group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">Search tools...</span>
-              <kbd className="hidden lg:inline-flex items-center px-2 py-0.5 text-xs bg-white dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600 shadow-sm">
-                ⌘K
-              </kbd>
-            </button>
-
-            <ThemeToggle />
-
-            {/* CTA Button */}
-            <Link
-              href="/tools"
-              className="hidden lg:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-medium rounded-xl hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300 hover:scale-105"
-            >
-              <Zap className="w-4 h-4" />
-              Explore
-            </Link>
-
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors"
-              aria-label="Open menu"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-          </div>
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--border)] md:hidden"
+            aria-label="Open menu"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
-      {/* Mobile Navigation */}
       <MobileNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
     </header>
   );

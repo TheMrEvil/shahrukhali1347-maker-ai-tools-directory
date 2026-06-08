@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { Compass } from 'lucide-react';
 import { aiTools } from '@/data/tools';
 import { categories } from '@/data/categories';
 import ToolGrid from '@/components/tools/ToolGrid';
@@ -14,18 +13,12 @@ export const metadata: Metadata = {
   title: 'AI Tools Directory - Browse 2000+ Tools',
   description: `Explore our complete directory of ${SITE_CONFIG.stats.toolsCount}+ AI tools. Filter by category, pricing, and features to find the perfect AI solution for your needs.`,
   keywords: ['AI tools', 'artificial intelligence', 'machine learning', 'AI software', 'AI directory'],
-  alternates: {
-    canonical: '/tools',
-  },
+  alternates: { canonical: '/tools' },
   openGraph: {
     title: 'AI Tools Directory - Browse 2000+ Tools',
-    description: `Explore our directory of ${SITE_CONFIG.stats.toolsCount}+ AI tools. Filter by category, pricing, and features to find the perfect AI solution.`,
+    description: `Explore our directory of ${SITE_CONFIG.stats.toolsCount}+ AI tools.`,
     url: '/tools',
     type: 'website',
-  },
-  twitter: {
-    title: 'AI Tools Directory - Browse 2000+ Tools',
-    description: `Explore our directory of ${SITE_CONFIG.stats.toolsCount}+ AI tools. Filter by category, pricing, and features to find the perfect AI solution.`,
   },
 };
 
@@ -38,37 +31,32 @@ export default async function ToolsPage({
 
   return (
     <>
-      {/* WebPage + CollectionPage schema for rich results */}
-      <StructuredData data={generateWebPageSchema({
-        name: 'AI Tools Directory - Browse 2000+ Tools',
-        description: `Explore our complete directory of ${SITE_CONFIG.stats.toolsCount}+ AI tools. Filter by category, pricing, and features to find the perfect AI solution for your needs.`,
-        url: '/tools',
-      })} />
+      <StructuredData
+        data={generateWebPageSchema({
+          name: 'AI Tools Directory - Browse 2000+ Tools',
+          description: `Explore our complete directory of ${SITE_CONFIG.stats.toolsCount}+ AI tools.`,
+          url: '/tools',
+        })}
+      />
       <StructuredData data={generateToolsListSchema(aiTools)} />
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Breadcrumbs items={[{ label: 'Tools', href: '/tools' }]} variant="light" />
+      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 pt-10 pb-20">
+        <Breadcrumbs items={[{ label: 'Tools', href: '/tools' }]} />
 
-            <div className="mt-8 text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-white/80 text-sm mb-6">
-                <Compass className="w-4 h-4" />
-                Explore {aiTools.length}+ Tools
-              </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                AI Tools Directory
-              </h1>
-              <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-                Discover {aiTools.length}+ AI tools across {categories.length} categories. Filter by pricing, platform, and rating.
-              </p>
-            </div>
-          </div>
-        </div>
+        <header className="mt-6 max-w-2xl">
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand)]">
+            Directory
+          </span>
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight md:text-5xl">
+            All AI tools
+          </h1>
+          <p className="mt-3 text-[var(--fg-soft)]">
+            Browse {aiTools.length}+ AI tools across {categories.length} categories. Filter by
+            pricing, sort by what you care about — no neon, no noise.
+          </p>
+        </header>
 
-        {/* Tools Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mt-10">
           <Suspense fallback={<ToolGrid tools={[]} isLoading={true} />}>
             <ToolsPageClient
               tools={aiTools}

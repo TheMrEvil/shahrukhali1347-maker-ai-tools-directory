@@ -1,13 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { AITool, Category } from '@/types';
 import { searchTools } from '@/lib/search';
 import { applyFilters } from '@/lib/filters';
 import ToolGrid from '@/components/tools/ToolGrid';
-import Select from '@/components/ui/Select';
-import Button from '@/components/ui/Button';
 
 interface ToolsPageClientProps {
   tools: AITool[];
@@ -17,6 +15,19 @@ interface ToolsPageClientProps {
   initialPricing?: string;
   initialSort?: string;
 }
+
+const sortOptions = [
+  { label: 'Most popular', value: 'popular' },
+  { label: 'Newest', value: 'newest' },
+  { label: 'Highest rated', value: 'rating' },
+  { label: 'Name A-Z', value: 'name' },
+];
+
+const pricingOptions = [
+  { label: 'Free', value: 'free' },
+  { label: 'Freemium', value: 'freemium' },
+  { label: 'Paid', value: 'paid' },
+];
 
 export default function ToolsPageClient({
   tools,
@@ -34,13 +45,13 @@ export default function ToolsPageClient({
 
   const filteredTools = useMemo(() => {
     let result = query ? searchTools(query) : tools;
-
     result = applyFilters(result, {
       categories: selectedCategory ? [selectedCategory] : undefined,
-      pricing: selectedPricing ? [selectedPricing as 'free' | 'freemium' | 'paid'] : undefined,
+      pricing: selectedPricing
+        ? [selectedPricing as 'free' | 'freemium' | 'paid']
+        : undefined,
       sortBy: sortBy as 'popular' | 'newest' | 'rating' | 'name',
     });
-
     return result;
   }, [tools, query, selectedCategory, selectedPricing, sortBy]);
 
@@ -51,150 +62,162 @@ export default function ToolsPageClient({
     setSortBy('popular');
   };
 
-  const hasActiveFilters = query || selectedCategory || selectedPricing;
+  const hasActive = query || selectedCategory || selectedPricing;
+  const activeCount = [query, selectedCategory, selectedPricing].filter(Boolean).length;
 
   return (
-    <div>
-      {/* Search and filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 mb-6 shadow-sm border border-gray-100 dark:border-gray-700">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-          {/* Search */}
-          <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+    <div className="grid gap-8 md:grid-cols-[240px_1fr]">
+      <aside
+        className={`space-y-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 md:sticky md:top-20 md:h-fit ${
+          !showFilters ? 'hidden md:block' : ''
+        }`}
+      >
+        <FilterGroup label="Sort by">
+          <div className="flex flex-col gap-1">
+            {sortOptions.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                onClick={() => setSortBy(o.value)}
+                className={`rounded-md px-2 py-1.5 text-left text-sm transition ${
+                  sortBy === o.value
+                    ? 'bg-[var(--brand-soft)] font-medium text-[var(--brand-strong)]'
+                    : 'text-[var(--fg-soft)] hover:bg-[var(--bg-soft)]'
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </FilterGroup>
+
+        <FilterGroup label="Category">
+          <div className="flex flex-col gap-1 max-h-72 overflow-y-auto pr-1">
+            <button
+              type="button"
+              onClick={() => setSelectedCategory('')}
+              className={`rounded-md px-2 py-1.5 text-left text-sm transition ${
+                !selectedCategory
+                  ? 'bg-[var(--brand-soft)] font-medium text-[var(--brand-strong)]'
+                  : 'text-[var(--fg-soft)] hover:bg-[var(--bg-soft)]'
+              }`}
+            >
+              All categories
+            </button>
+            {categories.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setSelectedCategory(c.slug)}
+                className={`rounded-md px-2 py-1.5 text-left text-sm transition ${
+                  selectedCategory === c.slug
+                    ? 'bg-[var(--brand-soft)] font-medium text-[var(--brand-strong)]'
+                    : 'text-[var(--fg-soft)] hover:bg-[var(--bg-soft)]'
+                }`}
+              >
+                {c.name}
+              </button>
+            ))}
+          </div>
+        </FilterGroup>
+
+        <FilterGroup label="Pricing">
+          <div className="flex flex-wrap gap-1.5">
+            <Chip active={!selectedPricing} onClick={() => setSelectedPricing('')}>
+              All
+            </Chip>
+            {pricingOptions.map((p) => (
+              <Chip
+                key={p.value}
+                active={selectedPricing === p.value}
+                onClick={() => setSelectedPricing(p.value)}
+              >
+                {p.label}
+              </Chip>
+            ))}
+          </div>
+        </FilterGroup>
+
+        {hasActive && (
+          <button
+            onClick={clearFilters}
+            className="inline-flex items-center gap-1 text-xs font-medium text-[var(--fg-soft)] hover:text-[var(--brand)]"
+          >
+            <X className="h-3 w-3" /> Reset all
+          </button>
+        )}
+      </aside>
+
+      <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative max-w-md flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search tools..."
-              className="w-full h-11 pl-11 pr-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium placeholder:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 focus:outline-none focus:border-purple-500 transition-colors duration-200"
+              placeholder="Search tools…"
+              className="w-full rounded-full border border-[var(--border)] bg-[var(--surface)] py-2.5 pl-9 pr-4 text-sm outline-none transition focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/30"
             />
           </div>
-
-          {/* Desktop filters */}
-          <div className="hidden lg:flex items-center gap-4">
-            <Select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              options={[
-                { label: 'All Categories', value: '' },
-                ...categories.map((c) => ({ label: c.name, value: c.slug })),
-              ]}
-            />
-            <Select
-              value={selectedPricing}
-              onChange={(e) => setSelectedPricing(e.target.value)}
-              options={[
-                { label: 'All Pricing', value: '' },
-                { label: 'Free', value: 'free' },
-                { label: 'Freemium', value: 'freemium' },
-                { label: 'Paid', value: 'paid' },
-              ]}
-            />
-            <Select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              options={[
-                { label: 'Most Popular', value: 'popular' },
-                { label: 'Newest', value: 'newest' },
-                { label: 'Highest Rated', value: 'rating' },
-                { label: 'Name A-Z', value: 'name' },
-              ]}
-            />
-          </div>
-
-          {/* Mobile filter toggle */}
-          <Button
-            variant="outline"
-            className="lg:hidden"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filters
-          </Button>
-        </div>
-
-        {/* Mobile filters */}
-        {showFilters && (
-          <div className="lg:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <Select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              options={[
-                { label: 'All Categories', value: '' },
-                ...categories.map((c) => ({ label: c.name, value: c.slug })),
-              ]}
-            />
-            <Select
-              value={selectedPricing}
-              onChange={(e) => setSelectedPricing(e.target.value)}
-              options={[
-                { label: 'All Pricing', value: '' },
-                { label: 'Free', value: 'free' },
-                { label: 'Freemium', value: 'freemium' },
-                { label: 'Paid', value: 'paid' },
-              ]}
-            />
-            <Select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              options={[
-                { label: 'Most Popular', value: 'popular' },
-                { label: 'Newest', value: 'newest' },
-                { label: 'Highest Rated', value: 'rating' },
-                { label: 'Name A-Z', value: 'name' },
-              ]}
-            />
-          </div>
-        )}
-
-        {/* Active filters */}
-        {hasActiveFilters && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-gray-500 dark:text-gray-400">Active filters:</span>
-            {query && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm">
-                Search: {query}
-                <button onClick={() => setQuery('')}>
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-            {selectedCategory && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm">
-                {categories.find((c) => c.slug === selectedCategory)?.name}
-                <button onClick={() => setSelectedCategory('')}>
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-            {selectedPricing && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 rounded-full text-sm">
-                {selectedPricing}
-                <button onClick={() => setSelectedPricing('')}>
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
+          <div className="flex items-center gap-2 text-sm text-[var(--fg-soft)]">
+            <span>{filteredTools.length} tools</span>
             <button
-              onClick={clearFilters}
-              className="text-sm text-primary-600 dark:text-primary-400 hover:underline"
+              onClick={() => setShowFilters((v) => !v)}
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 md:hidden"
             >
-              Clear all
+              Filters
+              {activeCount > 0 && (
+                <span className="rounded-full bg-[var(--brand)] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                  {activeCount}
+                </span>
+              )}
             </button>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Results count */}
-      <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-        Showing {filteredTools.length} tools
+        <div className="mt-6">
+          <ToolGrid
+            tools={filteredTools}
+            emptyMessage="No tools matched. Try clearing a filter."
+          />
+        </div>
       </div>
-
-      {/* Tools grid */}
-      <ToolGrid
-        tools={filteredTools}
-        emptyMessage="No tools found matching your criteria. Try adjusting your filters."
-      />
     </div>
+  );
+}
+
+function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+        {label}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+function Chip({
+  children,
+  active,
+  onClick,
+}: {
+  children: React.ReactNode;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+        active
+          ? 'border-[var(--brand)] bg-[var(--brand)] text-white'
+          : 'border-[var(--border)] bg-[var(--surface)] text-[var(--fg-soft)] hover:border-[var(--brand)] hover:text-[var(--brand)]'
+      }`}
+    >
+      {children}
+    </button>
   );
 }

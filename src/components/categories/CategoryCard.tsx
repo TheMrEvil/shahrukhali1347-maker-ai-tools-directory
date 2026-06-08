@@ -1,23 +1,41 @@
 import Link from 'next/link';
-import { MessageSquare, Image as ImageIcon, FileText, Code, Video, Music, Zap, Search, Palette, TrendingUp, BarChart3, Headphones, GraduationCap, DollarSign, Heart } from 'lucide-react';
+import {
+  ArrowRight,
+  MessageSquare,
+  Image as ImageIcon,
+  FileText,
+  Code,
+  Video,
+  Music,
+  Zap,
+  Search,
+  Palette,
+  TrendingUp,
+  BarChart3,
+  Headphones,
+  GraduationCap,
+  DollarSign,
+  Heart,
+} from 'lucide-react';
 import { Category } from '@/types';
+import { getAccent } from '@/lib/accent';
 
-const iconMap: Record<string, React.ReactNode> = {
-  MessageSquare: <MessageSquare className="w-8 h-8" />,
-  Image: <ImageIcon className="w-8 h-8" />,
-  FileText: <FileText className="w-8 h-8" />,
-  Code: <Code className="w-8 h-8" />,
-  Video: <Video className="w-8 h-8" />,
-  Music: <Music className="w-8 h-8" />,
-  Zap: <Zap className="w-8 h-8" />,
-  Search: <Search className="w-8 h-8" />,
-  Palette: <Palette className="w-8 h-8" />,
-  TrendingUp: <TrendingUp className="w-8 h-8" />,
-  BarChart3: <BarChart3 className="w-8 h-8" />,
-  Headphones: <Headphones className="w-8 h-8" />,
-  GraduationCap: <GraduationCap className="w-8 h-8" />,
-  DollarSign: <DollarSign className="w-8 h-8" />,
-  Heart: <Heart className="w-8 h-8" />,
+const iconMap: Record<string, React.ElementType> = {
+  MessageSquare,
+  Image: ImageIcon,
+  FileText,
+  Code,
+  Video,
+  Music,
+  Zap,
+  Search,
+  Palette,
+  TrendingUp,
+  BarChart3,
+  Headphones,
+  GraduationCap,
+  DollarSign,
+  Heart,
 };
 
 interface CategoryCardProps {
@@ -25,33 +43,43 @@ interface CategoryCardProps {
 }
 
 export default function CategoryCard({ category }: CategoryCardProps) {
+  const Icon = iconMap[category.icon] ?? Zap;
+  const accent = getAccent(category.slug);
+  const accentStyle = {
+    '--accent-from': accent.from,
+    '--accent-to': accent.to,
+  } as React.CSSProperties;
+
   return (
     <Link
       href={`/categories/${category.slug}`}
-      className="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700"
+      style={accentStyle}
+      className="group lift relative isolate flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5"
     >
-      {/* Image */}
-      <div
-        className="h-32 bg-cover bg-center relative"
-        style={{ backgroundImage: `url(${category.image})` }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className={`absolute bottom-4 left-4 w-14 h-14 ${category.color} rounded-lg flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform`}>
-          {iconMap[category.icon] || <Zap className="w-8 h-8" />}
+      <span className="accent-bar" aria-hidden="true" />
+      <span className="corner-glow" aria-hidden="true" />
+
+      <div className="relative z-10 flex items-center justify-between">
+        <div
+          className="grid h-12 w-12 place-items-center rounded-xl text-white shadow-soft transition-transform duration-300 group-hover:scale-105"
+          style={{ background: `linear-gradient(135deg, ${accent.from}, ${accent.to})` }}
+        >
+          <Icon className="wobble h-5 w-5" strokeWidth={2} />
         </div>
+        <span className="rounded-full bg-[var(--bg-soft)] px-2.5 py-0.5 text-xs font-semibold text-[var(--fg-soft)] transition group-hover:bg-[var(--brand-soft)] group-hover:text-[var(--brand-strong)]">
+          {category.toolCount} tools
+        </span>
       </div>
 
-      {/* Content */}
-      <div className="p-4">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-          {category.name}
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
-          {category.description}
-        </p>
-        <div className="text-sm font-medium text-primary-600 dark:text-primary-400">
-          {category.toolCount} tools
-        </div>
+      <h3 className="relative z-10 mt-4 text-lg font-semibold tracking-tight text-[var(--fg)] transition-colors group-hover:text-[var(--brand)]">
+        {category.name}
+      </h3>
+      <p className="relative z-10 mt-1.5 line-clamp-3 text-sm text-[var(--fg-soft)]">
+        {category.description}
+      </p>
+
+      <div className="relative z-10 mt-4 inline-flex items-center gap-1 border-t border-[var(--border)] pt-4 text-sm font-medium text-[var(--brand)]">
+        Browse <ArrowRight className="h-3.5 w-3.5 nudge" />
       </div>
     </Link>
   );

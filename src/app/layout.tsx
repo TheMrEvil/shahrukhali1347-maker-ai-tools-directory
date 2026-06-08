@@ -7,6 +7,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import StructuredData from '@/components/seo/StructuredData';
 import SearchPalette from '@/components/SearchPalette';
+import RevealOnScroll from '@/components/RevealOnScroll';
 import { generateWebsiteSchema, generateOrganizationSchema } from '@/lib/schema';
 import { SITE_CONFIG } from '@/config/site';
 
@@ -93,6 +94,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
           <SearchPalette />
+          <RevealOnScroll />
         </ThemeProvider>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${SITE_CONFIG.analytics.googleAnalyticsId}`}
