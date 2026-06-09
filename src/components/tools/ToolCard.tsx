@@ -2,33 +2,46 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { ArrowUpRight, Bookmark, CheckCircle, ExternalLink, ShieldCheck, Sparkles, Star, TrendingUp } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Bookmark,
+  CheckCircle,
+  ExternalLink,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  TrendingUp,
+} from 'lucide-react';
 import { AITool } from '@/types';
 import { getPricingLabel } from '@/lib/utils';
 import { getAccent, getInitials } from '@/lib/accent';
 import Spotlight from '@/components/Spotlight';
 
+interface ToolCardProps {
+  tool: AITool;
+}
+
+function formatReviews(n: number): string {
+  if (n < 1000) return n.toString();
+  if (n < 1_000_000) return `${(n / 1000).toFixed(n < 10_000 ? 1 : 0)}k`;
+  return `${(n / 1_000_000).toFixed(1)}M`;
+}
+
 function formatReviewed(iso: string): { label: string; fresh: boolean } | null {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return null;
   const days = Math.floor((Date.now() - d.getTime()) / 86400000);
-  // Only show within 60 days; "fresh" means within 14 days for stronger badge.
-  if (days > 60) return null;
   const label =
     days <= 0
       ? 'today'
       : days === 1
-      ? '1 day ago'
-      : days < 30
-      ? `${days} days ago`
+      ? '1d ago'
       : days < 60
-      ? `${Math.round(days / 7)} weeks ago`
-      : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      ? `${days}d ago`
+      : days < 365
+      ? `${Math.round(days / 30)}mo ago`
+      : d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   return { label, fresh: days <= 14 };
-}
-
-interface ToolCardProps {
-  tool: AITool;
 }
 
 export default function ToolCard({ tool }: ToolCardProps) {
@@ -41,10 +54,10 @@ export default function ToolCard({ tool }: ToolCardProps) {
 
   const pricingPill =
     pricingLabel === 'Free'
-      ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
+      ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/50 dark:text-emerald-300'
       : pricingLabel === 'Freemium'
-      ? 'border-sky-300 bg-sky-50 text-sky-700 dark:border-sky-800 dark:bg-sky-950/50 dark:text-sky-300'
-      : 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300';
+      ? 'border-sky-300 bg-sky-50 text-sky-700 dark:border-sky-800/60 dark:bg-sky-950/50 dark:text-sky-300'
+      : 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800/60 dark:bg-amber-950/50 dark:text-amber-300';
 
   const accentStyle = {
     '--accent-from': accent.from,
@@ -53,54 +66,83 @@ export default function ToolCard({ tool }: ToolCardProps) {
 
   return (
     <Spotlight
-      className="group lift sheen relative isolate flex h-full flex-col rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5"
+      className="group lift sheen relative isolate flex h-full flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)]"
       style={accentStyle}
     >
-      <span className="accent-bar" aria-hidden="true" />
-
       <Link
         href={`/tools/${tool.slug}`}
         className="absolute inset-0 z-0 rounded-2xl"
         aria-label={tool.name}
       />
 
-      <div className="relative z-10 flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <div
-            className="grid h-12 w-12 flex-shrink-0 place-items-center overflow-hidden rounded-xl border transition-transform duration-300 group-hover:scale-105"
-            style={{ background: accent.tile, borderColor: accent.ring }}
-          >
-            {!imgError ? (
-              <img
-                src={tool.logo}
-                alt={`${tool.name} logo`}
-                className="h-7 w-7 object-contain"
-                onError={() => setImgError(true)}
-                loading="lazy"
-                decoding="async"
-              />
-            ) : (
-              <span className="text-sm font-bold" style={{ color: accent.text }}>
-                {initials}
+      {/* Tinted header strip — pointer-events-none so clicks fall through to the
+          card-wide Link beneath. Any inner element that needs to be interactive
+          opts back in with pointer-events-auto + relative z-20. */}
+      <div
+        className="pointer-events-none relative z-10 flex items-end p-4 pb-3"
+        style={{
+          background: `linear-gradient(135deg, ${accent.tile}, transparent 70%)`,
+        }}
+      >
+        <span className="dot-bg absolute inset-0 opacity-30" aria-hidden="true" />
+
+        <div className="relative flex flex-1 items-center gap-3">
+          <div className="relative flex-shrink-0">
+            <div
+              className="grid h-14 w-14 place-items-center overflow-hidden rounded-xl border bg-[var(--surface)] shadow-soft transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3"
+              style={{ borderColor: accent.ring }}
+            >
+              {!imgError ? (
+                <img
+                  src={tool.logo}
+                  alt={`${tool.name} logo`}
+                  className="h-8 w-8 object-contain"
+                  onError={() => setImgError(true)}
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <span className="text-base font-bold" style={{ color: accent.text }}>
+                  {initials}
+                </span>
+              )}
+            </div>
+            {(tool.trending || tool.featured) && (
+              <span
+                title={tool.trending ? 'Trending' : 'Editor’s pick'}
+                className={`absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full text-white shadow-soft ring-2 ring-[var(--surface)] ${
+                  tool.trending
+                    ? 'bg-gradient-to-br from-rose-500 to-orange-500'
+                    : 'bg-[var(--brand)]'
+                }`}
+                aria-label={tool.trending ? 'Trending' : "Editor's pick"}
+              >
+                {tool.trending ? (
+                  <TrendingUp className="h-2.5 w-2.5" />
+                ) : (
+                  <Sparkles className="h-2.5 w-2.5" />
+                )}
               </span>
             )}
           </div>
-          <div className="min-w-0">
-            <h3 className="truncate text-base font-semibold text-[var(--fg)] transition-colors group-hover:text-[var(--brand)]">
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-base font-semibold tracking-tight text-[var(--fg)] transition-colors group-hover:text-[var(--brand)]">
               {tool.name}
             </h3>
-            <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs">
-              <span className="inline-flex items-center gap-0.5">
-                <Star className="h-3.5 w-3.5 fill-[var(--accent)] text-[var(--accent)]" />
-                <span className="font-semibold text-[var(--fg)]">{tool.rating.average.toFixed(1)}</span>
+            <div className="mt-0.5 flex items-center gap-1 truncate text-xs text-[var(--fg-soft)]">
+              <Star className="h-3 w-3 flex-shrink-0 fill-[var(--accent)] text-[var(--accent)]" />
+              <span className="flex-shrink-0 font-semibold text-[var(--fg)]">
+                {tool.rating.average.toFixed(1)}
               </span>
-              <span className="text-[var(--muted)]">·</span>
-              <span className="text-[var(--muted)]">{tool.rating.count.toLocaleString()}</span>
+              <span className="flex-shrink-0 text-[var(--muted)]">·</span>
+              <span className="flex-shrink-0 text-[var(--muted)]">
+                {formatReviews(tool.rating.count)}
+              </span>
               {reviewed && (
                 <>
-                  <span className="text-[var(--muted)]">·</span>
+                  <span className="flex-shrink-0 text-[var(--muted)]">·</span>
                   <span
-                    className={`inline-flex items-center gap-1 ${
+                    className={`inline-flex flex-shrink-0 items-center gap-0.5 ${
                       reviewed.fresh
                         ? 'font-medium text-emerald-600 dark:text-emerald-400'
                         : 'text-[var(--muted)]'
@@ -108,86 +150,83 @@ export default function ToolCard({ tool }: ToolCardProps) {
                     title={`Listing reviewed by editors on ${tool.dateUpdated}`}
                   >
                     <ShieldCheck className="h-3 w-3" />
-                    Reviewed {reviewed.label}
+                    {reviewed.label}
                   </span>
                 </>
               )}
             </div>
           </div>
         </div>
-
-        <div className="flex flex-col items-end gap-1">
-          {tool.trending && (
-            <span className="halo inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-              <TrendingUp className="h-3 w-3" /> Hot
-            </span>
-          )}
-          {tool.featured && !tool.trending && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-soft)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--brand-strong)]">
-              <Sparkles className="h-3 w-3" /> Pick
-            </span>
-          )}
-        </div>
       </div>
 
-      <p className="relative z-10 mt-4 line-clamp-2 text-sm text-[var(--fg-soft)]">
-        {tool.tagline}
-      </p>
+      {/* Body — pointer-events-none on the wrapper so the entire card surface
+          routes to the Link; bookmark + visit-site buttons opt back in below. */}
+      <div className="pointer-events-none relative z-10 flex flex-1 flex-col px-4 pb-4 pt-2">
+        <p className="line-clamp-2 text-sm text-[var(--fg-soft)]">{tool.tagline}</p>
 
-      <div className="relative z-10 mt-4 flex flex-wrap gap-1.5">
-        {tool.tags.slice(0, 3).map((tag) => (
-          <span
-            key={tag}
-            className="rounded-full border border-[var(--border)] bg-[var(--bg-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--fg-soft)] transition group-hover:border-[var(--border)] group-hover:bg-[var(--bg)]"
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-
-      <div className="relative z-10 mt-5 flex items-center justify-between gap-2 border-t border-[var(--border)] pt-4">
-        <div className="flex items-center gap-1.5">
-          <span
-            className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${pricingPill}`}
-          >
-            {pricingLabel}
-          </span>
-          {tool.verified && (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {tool.tags.slice(0, 3).map((tag) => (
             <span
-              title="Verified"
-              className="inline-flex items-center gap-0.5 rounded-full border border-[var(--border)] bg-[var(--bg-soft)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--fg-soft)]"
+              key={tag}
+              className="rounded-full border border-[var(--border)] bg-[var(--bg-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--fg-soft)]"
             >
-              <CheckCircle className="h-2.5 w-2.5 text-emerald-500" />
-              Verified
+              {tag}
             </span>
-          )}
+          ))}
         </div>
 
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={(e) => e.stopPropagation()}
-            aria-label="Bookmark"
-            className="relative z-20 grid h-7 w-7 place-items-center rounded-full border border-[var(--border)] text-[var(--muted)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)] hover:text-[var(--brand)]"
-          >
-            <Bookmark className="h-3 w-3" />
-          </button>
-          <a
-            href={tool.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="relative z-20 grid h-7 w-7 place-items-center rounded-full border border-[var(--border)] text-[var(--muted)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)] hover:text-[var(--brand)]"
-            aria-label="Visit website"
-          >
-            <ExternalLink className="h-3 w-3" />
-          </a>
-          <span
-            aria-hidden="true"
-            className="grid h-7 w-7 place-items-center rounded-full text-[var(--muted)] transition group-hover:bg-[var(--brand)] group-hover:text-white"
-          >
-            <ArrowUpRight className="h-4 w-4 nudge" />
-          </span>
+        {/* Bottom row */}
+        <div className="mt-auto flex items-center justify-between gap-2 border-t border-[var(--border)] pt-3">
+          <div className="flex items-center gap-1.5">
+            <span
+              className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${pricingPill}`}
+            >
+              {pricingLabel}
+            </span>
+            {tool.verified && (
+              <span
+                title="Verified"
+                className="inline-flex items-center gap-0.5 rounded-full border border-[var(--border)] bg-[var(--bg-soft)] px-1.5 py-0.5 text-[10px] font-semibold text-[var(--fg-soft)]"
+              >
+                <CheckCircle className="h-2.5 w-2.5 text-emerald-500" />
+                <span className="hidden lg:inline">Verified</span>
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {/* Icon buttons (interactive — opt back in to pointer events) */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
+              aria-label="Bookmark"
+              className="pointer-events-auto relative z-20 grid h-7 w-7 place-items-center rounded-full border border-[var(--border)] text-[var(--muted)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)] hover:text-[var(--brand)]"
+            >
+              <Bookmark className="h-3 w-3" />
+            </button>
+            <a
+              href={tool.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="pointer-events-auto relative z-20 inline-flex h-7 items-center gap-1 rounded-full border border-[var(--border)] bg-[var(--surface)] px-2.5 text-[10px] font-bold uppercase tracking-wider text-[var(--fg-soft)] transition hover:border-[var(--brand)] hover:bg-[var(--brand-soft)] hover:text-[var(--brand)]"
+              aria-label={`Visit ${tool.name} website`}
+            >
+              <ExternalLink className="h-3 w-3" />
+              <span className="hidden sm:inline">Visit</span>
+            </a>
+            {/* "View" affordance — visually communicates the card is clickable. */}
+            <span
+              aria-hidden="true"
+              className="inline-flex h-7 items-center gap-1 rounded-full bg-[var(--brand)] px-2.5 text-[10px] font-bold uppercase tracking-wider text-white transition group-hover:bg-[var(--brand-strong)]"
+            >
+              View
+              <ArrowUpRight className="h-3 w-3 nudge" />
+            </span>
+          </div>
         </div>
       </div>
     </Spotlight>

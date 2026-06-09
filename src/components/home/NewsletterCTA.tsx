@@ -32,7 +32,7 @@ export default function NewsletterCTA() {
   };
 
   return (
-    <section className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 pt-20">
+    <section className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 pt-20 pb-24">
       <div className="relative overflow-hidden rounded-3xl border border-[var(--border)] bg-[var(--surface)] p-8 md:p-14">
         <div className="dot-bg absolute inset-0 opacity-50" />
         <div
