@@ -306,6 +306,40 @@ export function generateBlogPostSchema(post: {
   };
 }
 
+// Rich Article schema for a long-form blog post (author + modified date + section)
+export function generateArticleSchema(post: {
+  title: string;
+  excerpt: string;
+  author: string;
+  datePublished: string;
+  dateUpdated: string;
+  slug: string;
+  category: string;
+  keywords: string[];
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: post.title,
+    description: post.excerpt,
+    author: {
+      '@type': 'Organization',
+      name: post.author,
+      url: SITE_CONFIG.url,
+    },
+    publisher: { '@id': `${SITE_CONFIG.url}/#organization` },
+    datePublished: post.datePublished,
+    dateModified: post.dateUpdated,
+    url: `${SITE_CONFIG.url}/blog/${post.slug}`,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `${SITE_CONFIG.url}/blog/${post.slug}`,
+    },
+    articleSection: post.category,
+    keywords: post.keywords.join(', '),
+  };
+}
+
 // Blog listing page schema
 export function generateBlogListSchema(posts: Array<{
   title: string;

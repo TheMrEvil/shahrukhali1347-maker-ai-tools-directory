@@ -1,8 +1,7 @@
 import { ImageResponse } from 'next/og';
-import { SITE_CONFIG } from '@/config/site';
 
 export const runtime = 'edge';
-export const alt = 'Best AI Tools - Discover & Compare 2000+ AI Tools';
+export const alt = 'Best AI Tools — An honest index of working AI tools';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -15,69 +14,131 @@ export default async function OpengraphImage() {
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 50%, #06b6d4 100%)',
-          padding: '80px',
+          background: '#f4efe1',
+          padding: '64px 80px',
           position: 'relative',
+          fontFamily: 'serif',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '120px',
-            height: '120px',
-            borderRadius: '28px',
-            background: 'rgba(255, 255, 255, 0.15)',
-            marginBottom: '32px',
-            fontSize: '72px',
-          }}
-        >
-          ✨
-        </div>
-        <div
-          style={{
-            fontSize: '84px',
-            fontWeight: 800,
-            color: 'white',
-            textAlign: 'center',
-            marginBottom: '24px',
-            letterSpacing: '-0.03em',
-            lineHeight: 1.05,
-          }}
-        >
-          {SITE_CONFIG.name}
-        </div>
-        <div
-          style={{
-            fontSize: '36px',
-            color: 'rgba(255, 255, 255, 0.92)',
-            textAlign: 'center',
-            maxWidth: '960px',
-            lineHeight: 1.35,
-          }}
-        >
-          Discover, compare &amp; choose from 2000+ AI tools across 50+ categories
-        </div>
+        {/* Top flag */}
         <div
           style={{
             position: 'absolute',
-            bottom: '60px',
+            top: 0,
             left: 0,
             right: 0,
+            height: '12px',
+            background: '#e8480c',
             display: 'flex',
-            justifyContent: 'center',
-            fontSize: '28px',
-            color: 'rgba(255, 255, 255, 0.8)',
-            letterSpacing: '0.02em',
+          }}
+        />
+
+        {/* Edition strip */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: '20px',
+            letterSpacing: '4px',
+            textTransform: 'uppercase',
+            color: '#7b7464',
           }}
         >
-          bestaitools4u.com
+          <div style={{ display: 'flex' }}>An independent index of AI software</div>
+          <div style={{ display: 'flex' }}>200 entries · reviewed weekly</div>
+        </div>
+        <div style={{ display: 'flex', height: '2px', background: '#211d15', marginTop: '18px' }} />
+
+        {/* Headline */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              fontSize: '30px',
+              letterSpacing: '6px',
+              textTransform: 'uppercase',
+              color: '#bd3a07',
+              marginBottom: '24px',
+            }}
+          >
+            Vol. 02 — The 2026 Edition
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              fontSize: '88px',
+              fontWeight: 700,
+              color: '#211d15',
+              lineHeight: 1.0,
+              letterSpacing: '-0.02em',
+            }}
+          >
+            An honest index of
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              fontSize: '88px',
+              fontWeight: 700,
+              lineHeight: 1.05,
+              letterSpacing: '-0.02em',
+              marginTop: '6px',
+            }}
+          >
+            <div style={{ display: 'flex', color: '#e8480c', fontStyle: 'italic' }}>working</div>
+            <div style={{ display: 'flex', color: '#211d15' }}>&nbsp;AI tools.</div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            borderTop: '2px solid #211d15',
+            paddingTop: '24px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline' }}>
+            <div style={{ display: 'flex', fontSize: '42px', fontWeight: 700, color: '#211d15' }}>
+              Best AI Tools
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                fontSize: '20px',
+                letterSpacing: '3px',
+                textTransform: 'uppercase',
+                color: '#bd3a07',
+                marginLeft: '16px',
+                fontFamily: 'monospace',
+              }}
+            >
+              The Index
+            </div>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              fontSize: '24px',
+              letterSpacing: '2px',
+              color: '#7b7464',
+              fontFamily: 'monospace',
+            }}
+          >
+            bestaitools4u.com
+          </div>
         </div>
       </div>
     ),
-    size
+    size,
   );
 }

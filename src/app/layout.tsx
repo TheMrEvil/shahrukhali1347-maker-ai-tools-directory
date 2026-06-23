@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, Fraunces } from 'next/font/google';
 import './globals.css';
 import ThemeProvider from '@/components/ThemeProvider';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import StructuredData from '@/components/seo/StructuredData';
 import SearchPalette from '@/components/SearchPalette';
+import RevealOnScroll from '@/components/RevealOnScroll';
 import { generateWebsiteSchema, generateOrganizationSchema } from '@/lib/schema';
 import { SITE_CONFIG } from '@/config/site';
 
@@ -18,6 +19,16 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+});
+
+const fraunces = Fraunces({
+  variable: '--font-fraunces',
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+  // SOFT + WONK are Fraunces' retro display axes — WONK enables the
+  // wonky old-style alternates used on display sizes.
+  axes: ['SOFT', 'WONK', 'opsz'],
 });
 
 const defaultDescription = 'Discover, compare, and choose from 2000+ AI tools across 50+ categories. Find the perfect AI solution with detailed reviews and guides.';
@@ -63,7 +74,7 @@ export const metadata: Metadata = {
     },
   },
   other: {
-    'theme-color': '#7c3aed',
+    'theme-color': '#131210',
     'apple-mobile-web-app-title': SITE_CONFIG.name,
   },
 };
@@ -74,7 +85,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="preconnect" href="https://images.unsplash.com" />
@@ -86,13 +97,15 @@ export default function RootLayout({
         <StructuredData data={generateOrganizationSchema()} />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} antialiased bg-[var(--bg)]`}
       >
         <ThemeProvider>
+          <div className="progress-flag" aria-hidden="true" />
           <Header />
-          <main className="flex-1">{children}</main>
+          <main>{children}</main>
           <Footer />
           <SearchPalette />
+          <RevealOnScroll />
         </ThemeProvider>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${SITE_CONFIG.analytics.googleAnalyticsId}`}

@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Send, CheckCircle, Sparkles, Upload, Link as LinkIcon, FileText, Tag, X } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import Breadcrumbs from '@/components/seo/Breadcrumbs';
-import Button from '@/components/ui/Button';
 
 interface SubmitFormData {
   name: string;
@@ -15,9 +14,11 @@ interface SubmitFormData {
   email: string;
 }
 
-const SUBMISSION_EMAIL = 'info@bestaitools4u.com';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'];
+
+const fieldClass =
+  'w-full border border-[var(--rule-strong)] bg-[var(--paper)] px-4 py-3 text-[var(--ink)] outline-none transition-colors placeholder:text-[var(--ink-faint)] focus:border-[var(--acc)]';
 
 export default function SubmitPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -167,296 +168,271 @@ export default function SubmitPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-violet-900 via-purple-900 to-fuchsia-900 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Breadcrumbs items={[{ label: 'Submit Tool', href: '/submit' }]} variant="light" />
+    <div className="shell pt-8 pb-20">
+      <Breadcrumbs items={[{ label: 'Submit Tool', href: '/submit' }]} />
 
-          <div className="mt-8 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-white/80 text-sm mb-6">
-              <Sparkles className="w-4 h-4" />
-              Paid Listings Only
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Submit Your AI Tool
-            </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Get your AI tool discovered by thousands of users looking for the perfect solution.
-            </p>
-            <p className="mt-4 inline-block px-4 py-2 bg-amber-500/20 border border-amber-400/40 rounded-lg text-amber-100 text-sm font-medium">
-              Note: We currently accept paid submissions only. We&apos;ll reply with details after we review your tool.
-            </p>
-          </div>
-        </div>
-      </div>
+      <header className="mt-8 max-w-3xl">
+        <p className="folio">№ — For The Index</p>
+        <h1 className="display misprint mt-4 text-5xl text-[var(--ink)] md:text-7xl">
+          Submit your
+          <br />
+          <em className="display-it u-wavy text-[var(--acc-text)]">AI tool.</em>
+        </h1>
+        <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--ink-soft)]">
+          Get your AI tool discovered by thousands of users looking for the perfect solution.
+        </p>
+      </header>
 
       {/* Form Section */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="mx-auto mt-12 max-w-3xl">
         {isSubmitted ? (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center border border-gray-200 dark:border-gray-700">
-            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Thank You for Your Submission!
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              We&apos;ve received your tool submission. Our team will review it within 2-3 business days and email you back with paid listing details and next steps.
+          <div className="border-l-2 border-[var(--acc)] bg-[var(--paper-2)] px-6 py-5">
+            <p className="kicker text-[var(--acc-text)]">Thank you for your submission</p>
+            <p className="mt-2 text-[15px] leading-relaxed text-[var(--ink-soft)]">
+              We&apos;ve received your tool submission. Our team will review it within 2-3 business
+              days and email you back with paid listing details and next steps.
             </p>
-            <Button onClick={resetForm}>
-              Submit Another Tool
-            </Button>
+            <button onClick={resetForm} className="btn-line mt-4">
+              Submit another tool
+            </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
-            <div className="space-y-6">
-              <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm text-amber-800 dark:text-amber-300">
-                <strong className="block mb-1">Paid submissions only</strong>
-                We currently accept paid listings only. After you submit the form below, our team will review your tool and reply with placement details and next steps within 2-3 business days.
-              </div>
-
-              {error && (
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-sm text-red-700 dark:text-red-400">
-                  {error}
-                </div>
-              )}
-
-              {/* Tool Name */}
-              <div>
-                <label htmlFor="name" className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white mb-2">
-                  <FileText className="w-4 h-4 text-purple-500" />
-                  Tool Name *
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="e.g., My Awesome AI Tool"
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-900 dark:text-white"
-                />
-              </div>
-
-              {/* Website URL */}
-              <div>
-                <label htmlFor="website" className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white mb-2">
-                  <LinkIcon className="w-4 h-4 text-purple-500" />
-                  Website URL *
-                </label>
-                <input
-                  id="website"
-                  name="website"
-                  type="url"
-                  required
-                  value={formData.website}
-                  onChange={handleChange}
-                  placeholder="https://your-tool.com"
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-900 dark:text-white"
-                />
-              </div>
-
-              {/* Short Description */}
-              <div>
-                <label htmlFor="tagline" className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white mb-2">
-                  <Tag className="w-4 h-4 text-purple-500" />
-                  Short Description *
-                </label>
-                <input
-                  id="tagline"
-                  name="tagline"
-                  type="text"
-                  required
-                  maxLength={100}
-                  value={formData.tagline}
-                  onChange={handleChange}
-                  placeholder="A brief tagline for your tool (max 100 characters)"
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-900 dark:text-white"
-                />
-              </div>
-
-              {/* Full Description */}
-              <div>
-                <label htmlFor="description" className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                  Full Description *
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  required
-                  rows={4}
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Describe what your tool does, its key features, and who it's for..."
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-900 dark:text-white resize-none"
-                />
-              </div>
-
-              {/* Category */}
-              <div>
-                <label htmlFor="category" className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                  Category *
-                </label>
-                <select
-                  id="category"
-                  name="category"
-                  required
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-900 dark:text-white"
-                >
-                  <option value="">Select a category</option>
-                  <option value="chatbots">Chatbots & Assistants</option>
-                  <option value="image-generation">Image Generation</option>
-                  <option value="writing">Writing & Content</option>
-                  <option value="coding">Coding & Development</option>
-                  <option value="video">Video Generation</option>
-                  <option value="audio">Audio & Music</option>
-                  <option value="productivity">Productivity</option>
-                  <option value="research">Research & Analysis</option>
-                  <option value="design">Design & Creative</option>
-                  <option value="marketing">Marketing & SEO</option>
-                </select>
-              </div>
-
-              {/* Pricing */}
-              <div>
-                <label htmlFor="pricing" className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                  Pricing Model *
-                </label>
-                <select
-                  id="pricing"
-                  name="pricing"
-                  required
-                  value={formData.pricing}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-900 dark:text-white"
-                >
-                  <option value="">Select pricing model</option>
-                  <option value="free">Free</option>
-                  <option value="freemium">Freemium</option>
-                  <option value="paid">Paid</option>
-                  <option value="contact">Contact for Pricing</option>
-                </select>
-              </div>
-
-              {/* Logo Upload */}
-              <div>
-                <label className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                  Logo / Screenshot
-                </label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  aria-label="Upload logo or screenshot"
-                />
-                {logoPreview && logoFile ? (
-                  <div className="border-2 border-gray-200 dark:border-gray-700 rounded-xl p-4 flex items-center gap-4">
-                    <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900 flex-shrink-0 flex items-center justify-center">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={logoPreview}
-                        alt="Logo preview"
-                        className="max-w-full max-h-full object-contain"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                        {logoFile.name}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {(logoFile.size / 1024).toFixed(0)} KB
-                      </p>
-                      <button
-                        type="button"
-                        onClick={openFilePicker}
-                        className="text-xs text-purple-600 dark:text-purple-400 hover:underline mt-1"
-                      >
-                        Change file
-                      </button>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={removeLogo}
-                      className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex-shrink-0"
-                      aria-label="Remove logo"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    onClick={openFilePicker}
-                    onDrop={handleDrop}
-                    onDragOver={handleDragOver}
-                    onDragLeave={handleDragLeave}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        openFilePicker();
-                      }
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors cursor-pointer ${
-                      isDragging
-                        ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/10'
-                        : 'border-gray-300 dark:border-gray-600 hover:border-purple-500'
-                    }`}
-                  >
-                    <Upload className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Drag and drop or click to upload
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      PNG, JPG, WebP, or SVG up to 5MB
-                    </p>
-                  </div>
-                )}
-                {logoFile && (
-                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-                    ⚠ Please attach this file to the email that opens when you click Submit
-                  </p>
-                )}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label htmlFor="email" className="text-sm font-medium text-gray-900 dark:text-white mb-2 block">
-                  Your Email *
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com"
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-gray-900 dark:text-white"
-                />
-              </div>
-
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                size="lg"
-                isLoading={isLoading}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Submit Tool for Review
-              </Button>
-
-              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                By submitting, you agree to our terms and confirm that you have the right to list this tool. Listings are paid only — we&apos;ll email you with details after reviewing your submission.
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Paid listings callout */}
+            <div className="border-l-2 border-[var(--acc)] bg-[var(--paper-2)] px-5 py-4">
+              <p className="kicker text-[var(--acc-text)]">Paid listings only</p>
+              <p className="mt-2 text-[15px] leading-relaxed text-[var(--ink-soft)]">
+                We currently accept paid listings only. After you submit the form below, our team
+                will review your tool and reply with placement details and next steps within 2-3
+                business days.
               </p>
             </div>
+
+            {error && (
+              <div className="border-l-2 border-[var(--acc)] bg-[var(--paper-2)] px-5 py-4">
+                <p className="text-sm text-[var(--acc-text)]">{error}</p>
+              </div>
+            )}
+
+            {/* Tool Name */}
+            <div>
+              <label htmlFor="name" className="kicker mb-2 block">
+                Tool Name *
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="e.g., My Awesome AI Tool"
+                className={fieldClass}
+              />
+            </div>
+
+            {/* Website URL */}
+            <div>
+              <label htmlFor="website" className="kicker mb-2 block">
+                Website URL *
+              </label>
+              <input
+                id="website"
+                name="website"
+                type="url"
+                required
+                value={formData.website}
+                onChange={handleChange}
+                placeholder="https://your-tool.com"
+                className={fieldClass}
+              />
+            </div>
+
+            {/* Short Description */}
+            <div>
+              <label htmlFor="tagline" className="kicker mb-2 block">
+                Short Description *
+              </label>
+              <input
+                id="tagline"
+                name="tagline"
+                type="text"
+                required
+                maxLength={100}
+                value={formData.tagline}
+                onChange={handleChange}
+                placeholder="A brief tagline for your tool (max 100 characters)"
+                className={fieldClass}
+              />
+            </div>
+
+            {/* Full Description */}
+            <div>
+              <label htmlFor="description" className="kicker mb-2 block">
+                Full Description *
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                required
+                rows={4}
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Describe what your tool does, its key features, and who it's for..."
+                className={`${fieldClass} resize-none`}
+              />
+            </div>
+
+            {/* Category */}
+            <div>
+              <label htmlFor="category" className="kicker mb-2 block">
+                Category *
+              </label>
+              <select
+                id="category"
+                name="category"
+                required
+                value={formData.category}
+                onChange={handleChange}
+                className={fieldClass}
+              >
+                <option value="">Select a category</option>
+                <option value="chatbots">Chatbots & Assistants</option>
+                <option value="image-generation">Image Generation</option>
+                <option value="writing">Writing & Content</option>
+                <option value="coding">Coding & Development</option>
+                <option value="video">Video Generation</option>
+                <option value="audio">Audio & Music</option>
+                <option value="productivity">Productivity</option>
+                <option value="research">Research & Analysis</option>
+                <option value="design">Design & Creative</option>
+                <option value="marketing">Marketing & SEO</option>
+              </select>
+            </div>
+
+            {/* Pricing */}
+            <div>
+              <label htmlFor="pricing" className="kicker mb-2 block">
+                Pricing Model *
+              </label>
+              <select
+                id="pricing"
+                name="pricing"
+                required
+                value={formData.pricing}
+                onChange={handleChange}
+                className={fieldClass}
+              >
+                <option value="">Select pricing model</option>
+                <option value="free">Free</option>
+                <option value="freemium">Freemium</option>
+                <option value="paid">Paid</option>
+                <option value="contact">Contact for Pricing</option>
+              </select>
+            </div>
+
+            {/* Logo Upload */}
+            <div>
+              <label className="kicker mb-2 block">Logo / Screenshot</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                onChange={handleFileChange}
+                className="hidden"
+                aria-label="Upload logo or screenshot"
+              />
+              {logoPreview && logoFile ? (
+                <div className="flex items-center gap-4 border border-[var(--rule-strong)] p-4">
+                  <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden border border-[var(--rule)] bg-[var(--paper-2)]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={logoPreview}
+                      alt="Logo preview"
+                      className="max-h-full max-w-full object-contain"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-[var(--ink)]">{logoFile.name}</p>
+                    <p className="text-xs text-[var(--ink-faint)]">
+                      {(logoFile.size / 1024).toFixed(0)} KB
+                    </p>
+                    <button
+                      type="button"
+                      onClick={openFilePicker}
+                      className="u-link mt-1 text-xs text-[var(--acc-text)]"
+                    >
+                      Change file
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeLogo}
+                    className="flex-shrink-0 border border-[var(--rule)] p-2 text-[var(--ink-soft)] transition-colors hover:border-[var(--acc)] hover:text-[var(--acc-text)]"
+                    aria-label="Remove logo"
+                  >
+                    <X className="h-5 w-5" strokeWidth={1.5} />
+                  </button>
+                </div>
+              ) : (
+                <div
+                  onClick={openFilePicker}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      openFilePicker();
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  className={`cursor-pointer border border-dashed p-8 text-center transition-colors ${
+                    isDragging
+                      ? 'border-[var(--acc)] bg-[var(--paper-2)]'
+                      : 'border-[var(--rule-strong)] hover:border-[var(--acc)]'
+                  }`}
+                >
+                  <Upload className="mx-auto mb-3 h-9 w-9 text-[var(--ink-faint)]" strokeWidth={1.5} />
+                  <p className="text-sm text-[var(--ink-soft)]">Drag and drop or click to upload</p>
+                  <p className="mt-1 text-xs text-[var(--ink-faint)]">PNG, JPG, WebP, or SVG up to 5MB</p>
+                </div>
+              )}
+              {logoFile && (
+                <p className="mt-2 text-xs text-[var(--acc-text)]">
+                  Please attach this file to the email that opens when you click Submit
+                </p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label htmlFor="email" className="kicker mb-2 block">
+                Your Email *
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                className={fieldClass}
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button type="submit" disabled={isLoading} className="btn-ink w-full justify-center">
+              {isLoading ? 'Submitting…' : 'Submit tool for review'}
+            </button>
+
+            <p className="text-center text-xs text-[var(--ink-faint)]">
+              By submitting, you agree to our terms and confirm that you have the right to list this
+              tool. Listings are paid only — we&apos;ll email you with details after reviewing your
+              submission.
+            </p>
           </form>
         )}
       </div>

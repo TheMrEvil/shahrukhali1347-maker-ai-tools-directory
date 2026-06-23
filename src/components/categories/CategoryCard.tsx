@@ -1,57 +1,55 @@
 import Link from 'next/link';
-import { MessageSquare, Image as ImageIcon, FileText, Code, Video, Music, Zap, Search, Palette, TrendingUp, BarChart3, Headphones, GraduationCap, DollarSign, Heart } from 'lucide-react';
 import { Category } from '@/types';
-
-const iconMap: Record<string, React.ReactNode> = {
-  MessageSquare: <MessageSquare className="w-8 h-8" />,
-  Image: <ImageIcon className="w-8 h-8" />,
-  FileText: <FileText className="w-8 h-8" />,
-  Code: <Code className="w-8 h-8" />,
-  Video: <Video className="w-8 h-8" />,
-  Music: <Music className="w-8 h-8" />,
-  Zap: <Zap className="w-8 h-8" />,
-  Search: <Search className="w-8 h-8" />,
-  Palette: <Palette className="w-8 h-8" />,
-  TrendingUp: <TrendingUp className="w-8 h-8" />,
-  BarChart3: <BarChart3 className="w-8 h-8" />,
-  Headphones: <Headphones className="w-8 h-8" />,
-  GraduationCap: <GraduationCap className="w-8 h-8" />,
-  DollarSign: <DollarSign className="w-8 h-8" />,
-  Heart: <Heart className="w-8 h-8" />,
-};
 
 interface CategoryCardProps {
   category: Category;
+  index?: number;
 }
 
-export default function CategoryCard({ category }: CategoryCardProps) {
+/**
+ * Section clipping — a retro newspaper card. A mono dateline band, a balanced
+ * serif headline (no orphaned words), a hairline byline rule, an abstract, and
+ * a ruled footer whose CTA inverts to ink. A press rule draws in across the top
+ * on hover (see .news-plate).
+ */
+export default function CategoryCard({ category, index = 0 }: CategoryCardProps) {
   return (
     <Link
       href={`/categories/${category.slug}`}
-      className="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700"
+      className="news-plate group flex h-full min-h-[15rem] flex-col"
     >
-      {/* Image */}
-      <div
-        className="h-32 bg-cover bg-center relative"
-        style={{ backgroundImage: `url(${category.image})` }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className={`absolute bottom-4 left-4 w-14 h-14 ${category.color} rounded-lg flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform`}>
-          {iconMap[category.icon] || <Zap className="w-8 h-8" />}
-        </div>
+      {/* Dateline band */}
+      <div className="mono flex items-center justify-between border-b border-[var(--rule)] px-5 py-2.5 text-[9px] uppercase tracking-[0.18em]">
+        <span className="font-semibold text-[var(--acc-text)]">
+          Sec. {String(index + 1).padStart(2, '0')}
+        </span>
+        <span className="text-[var(--ink-faint)]">
+          {category.popular ? '★ Frequently consulted' : 'Filed entry'}
+        </span>
       </div>
 
-      {/* Content */}
-      <div className="p-4">
-        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-          {category.name}
+      {/* Headline + standfirst */}
+      <div className="flex flex-1 flex-col px-5 pt-4 pb-5">
+        <h3 className="display text-balance text-[1.5rem] leading-[1.02] text-[var(--ink)] transition-colors group-hover:text-[var(--acc-text)]">
+          <span className="u-link">{category.name}</span>
         </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
+        <div className="hairline-x my-3.5" aria-hidden="true" />
+        <p className="line-clamp-2 text-sm leading-relaxed text-[var(--ink-soft)]">
           {category.description}
         </p>
-        <div className="text-sm font-medium text-primary-600 dark:text-primary-400">
-          {category.toolCount} tools
-        </div>
+      </div>
+
+      {/* Ruled footer: count + invert CTA */}
+      <div className="rule-t mono flex items-stretch text-[10px] uppercase tracking-[0.12em]">
+        <span className="flex items-center gap-1.5 px-5 py-3 text-[var(--ink-soft)]">
+          <span className="text-base font-bold leading-none text-[var(--ink)]">
+            {category.toolCount}
+          </span>
+          entries
+        </span>
+        <span className="ml-auto flex items-center border-l border-[var(--rule)] px-5 py-3 text-[var(--acc-text)] transition-colors group-hover:bg-[var(--ink)] group-hover:text-[var(--paper)]">
+          Read section ↗
+        </span>
       </div>
     </Link>
   );

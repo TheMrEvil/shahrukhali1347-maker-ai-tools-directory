@@ -2,22 +2,50 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X, Sparkles, Layers, GitCompare, ArrowRight } from 'lucide-react';
+import type { ComponentType } from 'react';
+import {
+  Search,
+  X,
+  Layers,
+  GitCompare,
+  ArrowRight,
+  Newspaper,
+  GraduationCap,
+  BookOpen,
+  Mail,
+  Plus,
+  Info,
+  FileText,
+} from 'lucide-react';
 import { aiTools } from '@/data/tools';
 import { categories } from '@/data/categories';
 
 type SearchResult =
-  | { type: 'tool'; id: string; name: string; tagline: string; slug: string }
+  | { type: 'tool'; id: string; name: string; tagline: string; slug: string; logo: string }
   | { type: 'category'; id: string; name: string; description: string; slug: string }
   | { type: 'page'; id: string; name: string; description: string; href: string };
 
 const STATIC_PAGES: SearchResult[] = [
   { type: 'page', id: 'compare', name: 'Compare AI Tools', description: 'Side-by-side comparisons', href: '/compare' },
   { type: 'page', id: 'collections', name: 'Collections', description: 'Curated tool stacks', href: '/collections' },
+  { type: 'page', id: 'blog', name: 'The Blog', description: 'Reviews, comparisons, explainers', href: '/blog' },
+  { type: 'page', id: 'guides', name: 'Field Notes', description: 'Step-by-step guides', href: '/guides' },
   { type: 'page', id: 'methodology', name: 'How We Review', description: 'Our editorial methodology', href: '/methodology' },
   { type: 'page', id: 'submit', name: 'Submit a Tool', description: 'Suggest a tool for our directory', href: '/submit' },
-  { type: 'page', id: 'about', name: 'About', description: 'Mission and team', href: '/about' },
+  { type: 'page', id: 'contact', name: 'Contact', description: 'Get in touch', href: '/contact' },
+  { type: 'page', id: 'about', name: 'About', description: 'Mission and methodology', href: '/about' },
 ];
+
+const PAGE_ICONS: Record<string, ComponentType<{ className?: string }>> = {
+  compare: GitCompare,
+  collections: Layers,
+  blog: Newspaper,
+  guides: GraduationCap,
+  methodology: BookOpen,
+  submit: Plus,
+  contact: Mail,
+  about: Info,
+};
 
 export default function SearchPalette() {
   const [open, setOpen] = useState(false);
@@ -79,7 +107,7 @@ export default function SearchPalette() {
       const featured: SearchResult[] = aiTools
         .filter((t) => t.featured)
         .slice(0, 5)
-        .map((t) => ({ type: 'tool', id: t.id, name: t.name, tagline: t.tagline, slug: t.slug }));
+        .map((t) => ({ type: 'tool', id: t.id, name: t.name, tagline: t.tagline, slug: t.slug, logo: t.logo }));
       return [...STATIC_PAGES.slice(0, 3), ...featured];
     }
 
@@ -90,7 +118,7 @@ export default function SearchPalette() {
         t.tags.some((tag) => tag.toLowerCase().includes(q))
       )
       .slice(0, 8)
-      .map((t) => ({ type: 'tool', id: t.id, name: t.name, tagline: t.tagline, slug: t.slug }));
+      .map((t) => ({ type: 'tool', id: t.id, name: t.name, tagline: t.tagline, slug: t.slug, logo: t.logo }));
 
     const categoryMatches: SearchResult[] = categories
       .filter((c) => c.name.toLowerCase().includes(q) || c.description.toLowerCase().includes(q))
@@ -133,39 +161,43 @@ export default function SearchPalette() {
   if (!open) return null;
 
   const getIcon = (r: SearchResult) => {
-    if (r.type === 'tool') return <Sparkles className="w-4 h-4 text-purple-500" />;
-    if (r.type === 'category') return <Layers className="w-4 h-4 text-blue-500" />;
-    if (r.id === 'compare') return <GitCompare className="w-4 h-4 text-emerald-500" />;
-    return <Search className="w-4 h-4 text-gray-500" />;
+    if (r.type === 'tool') {
+      // eslint-disable-next-line @next/next/no-img-element
+      return <img src={r.logo} alt="" className="h-4 w-4 object-contain" />;
+    }
+    if (r.type === 'category') return <Layers className="h-4 w-4 text-[var(--ink-faint)]" />;
+    const Icon = PAGE_ICONS[r.id] ?? FileText;
+    return <Icon className="h-4 w-4 text-[var(--ink-faint)]" />;
   };
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] px-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[10vh] bg-[color-mix(in_oklab,var(--ink)_55%,transparent)]"
       onClick={() => setOpen(false)}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+        className="w-full max-w-2xl overflow-hidden border border-[var(--rule-strong)] bg-[var(--paper)]"
       >
+        <div className="flag" aria-hidden="true" />
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <Search className="w-5 h-5 text-gray-400" />
+        <div className="flex items-center gap-3 border-b border-[var(--rule)] px-4 py-3">
+          <Search className="h-5 w-5 text-[var(--ink-faint)]" />
           <input
             ref={inputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search tools, categories, or pages..."
-            className="flex-1 bg-transparent outline-none text-base text-gray-900 dark:text-white placeholder:text-gray-400"
+            placeholder="Search the index — tools, sections, pages…"
+            className="serif flex-1 bg-transparent text-base italic text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
           />
           <button
             onClick={() => setOpen(false)}
-            className="p-1 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+            className="grid h-7 w-7 place-items-center border border-[var(--rule)] text-[var(--ink-faint)] transition-colors hover:border-[var(--ink)] hover:text-[var(--ink)]"
             aria-label="Close search"
           >
-            <X className="w-5 h-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
@@ -173,44 +205,51 @@ export default function SearchPalette() {
         <div className="max-h-[60vh] overflow-y-auto py-2">
           {results.length === 0 ? (
             <div className="px-6 py-12 text-center">
-              <p className="text-gray-500 dark:text-gray-400">No results for &quot;{query}&quot;</p>
-              <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
-                Try a different search or browse <button onClick={() => { setOpen(false); router.push('/tools'); }} className="text-purple-600 dark:text-purple-400 hover:underline">all tools</button>
+              <p className="serif text-lg italic text-[var(--ink-faint)]">
+                Nothing in the index matches &quot;{query}&quot;
+              </p>
+              <p className="mono mt-3 text-[11px] uppercase tracking-[0.12em] text-[var(--ink-faint)]">
+                Try another term or{' '}
+                <button
+                  onClick={() => { setOpen(false); router.push('/tools'); }}
+                  className="u-link text-[var(--acc-text)]"
+                >
+                  browse all tools
+                </button>
               </p>
             </div>
           ) : (
             <>
               {!query && (
-                <div className="px-4 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
-                  Quick links &amp; featured tools
-                </div>
+                <div className="kicker px-4 py-2">Quick links &amp; featured tools</div>
               )}
               {results.map((r, i) => (
                 <button
                   key={`${r.type}-${r.id}`}
                   onClick={() => handleSelect(r)}
                   onMouseEnter={() => setActiveIndex(i)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                    activeIndex === i
-                      ? 'bg-purple-50 dark:bg-purple-900/20'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                  }`}
+                  className="row-invert flex w-full items-center gap-3 px-4 py-3 text-left"
+                  data-active={activeIndex === i}
                 >
-                  <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
+                  <span
+                    className={`grid h-8 w-8 flex-shrink-0 place-items-center border border-[var(--rule)] ${
+                      r.type === 'tool' ? 'bg-white' : 'bg-[var(--paper-2)]'
+                    }`}
+                  >
                     {getIcon(r)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-[var(--ink)]">
                       {r.name}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {r.type === 'tool' ? r.tagline : r.type === 'category' ? r.description : r.description}
-                    </div>
-                  </div>
-                  <span className="text-xs text-gray-400 uppercase tracking-wider flex-shrink-0">
+                    </span>
+                    <span className="row-dim block truncate text-xs text-[var(--ink-faint)]">
+                      {r.type === 'tool' ? r.tagline : r.description}
+                    </span>
+                  </span>
+                  <span className="row-dim mono flex-shrink-0 text-[10px] uppercase tracking-[0.12em] text-[var(--ink-faint)]">
                     {r.type}
                   </span>
-                  <ArrowRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  <ArrowRight className="h-4 w-4 flex-shrink-0 text-[var(--ink-faint)]" />
                 </button>
               ))}
             </>
@@ -218,19 +257,16 @@ export default function SearchPalette() {
         </div>
 
         {/* Footer hints */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-500 dark:text-gray-400">
+        <div className="mono flex items-center justify-between border-t border-[var(--rule)] bg-[var(--paper-2)] px-4 py-2.5 text-[10px] uppercase tracking-[0.12em] text-[var(--ink-faint)]">
           <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-900 rounded border border-gray-300 dark:border-gray-600 font-mono">↑↓</kbd>
-              navigate
+            <span className="flex items-center gap-1.5">
+              <kbd className="kbd-hint">↑↓</kbd> navigate
             </span>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-900 rounded border border-gray-300 dark:border-gray-600 font-mono">↵</kbd>
-              open
+            <span className="flex items-center gap-1.5">
+              <kbd className="kbd-hint">↵</kbd> open
             </span>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white dark:bg-gray-900 rounded border border-gray-300 dark:border-gray-600 font-mono">esc</kbd>
-              close
+            <span className="flex items-center gap-1.5">
+              <kbd className="kbd-hint">esc</kbd> close
             </span>
           </div>
           <span>Best AI Tools</span>

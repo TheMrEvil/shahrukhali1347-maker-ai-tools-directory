@@ -61,13 +61,13 @@ export default function Rating({
       </div>
 
       {showValue && (
-        <span className={cn('font-semibold text-gray-900 dark:text-white', textSizes[size])}>
+        <span className={cn('font-semibold text-[var(--ink)]', textSizes[size])}>
           {value.toFixed(1)}
         </span>
       )}
 
       {count !== undefined && (
-        <span className={cn('text-gray-500 dark:text-gray-400', textSizes[size])}>
+        <span className={cn('text-[var(--ink-faint)]', textSizes[size])}>
           ({count.toLocaleString()})
         </span>
       )}

@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import { Grid3X3 } from 'lucide-react';
 import { categories } from '@/data/categories';
 import CategoryCard from '@/components/categories/CategoryCard';
 import Breadcrumbs from '@/components/seo/Breadcrumbs';
@@ -26,9 +25,10 @@ export const metadata: Metadata = {
 };
 
 export default function CategoriesPage() {
+  const total = categories.reduce((sum, c) => sum + c.toolCount, 0);
+
   return (
     <>
-      {/* WebPage + Categories listing schema for rich results */}
       <StructuredData data={generateWebPageSchema({
         name: 'AI Tool Categories - Browse by Use Case',
         description: `Explore ${SITE_CONFIG.stats.categoriesCount}+ categories of AI tools. Find tools for chatbots, image generation, code assistance, content creation, and more.`,
@@ -41,34 +41,42 @@ export default function CategoriesPage() {
         toolCount: c.toolCount,
       })))} />
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Breadcrumbs items={[{ label: 'Categories', href: '/categories' }]} variant="light" />
+      <div className="mx-auto max-w-6xl px-5 pt-8 pb-20 lg:px-8">
+        <Breadcrumbs items={[{ label: 'Sections', href: '/categories' }]} />
 
-            <div className="mt-8 text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-white/80 text-sm mb-6">
-                <Grid3X3 className="w-4 h-4" />
-                Browse by Use Case
-              </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                AI Tool Categories
-              </h1>
-              <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-                Explore AI tools organized by use case and industry. Find the perfect solution for your needs.
-              </p>
+        {/* Newspaper nameplate — this section gets a centered masthead */}
+        <header className="mt-8">
+          <div className="mono flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-[var(--rule)] pb-2 text-[9px] uppercase tracking-[0.18em] text-[var(--ink-faint)]">
+            <span>Best AI Tools · The Index</span>
+            <span className="text-[var(--acc-text)]">Table of Sections</span>
+            <span>
+              {categories.length} departments · {total} entries
+            </span>
+          </div>
+
+          <div className="nameplate px-4 py-9 md:py-12">
+            <p className="folio">№ 003</p>
+            <h1 className="display misprint mt-2 text-[2.75rem] leading-[0.9] text-[var(--ink)] sm:text-6xl md:text-[6.5rem]">
+              The Directory
+            </h1>
+            <div className="ornament mx-auto mt-5 max-w-lg">
+              <span className="mono whitespace-nowrap text-[10px] uppercase tracking-[0.22em] text-[var(--ink-faint)]">
+                Every department, filed
+              </span>
             </div>
           </div>
-        </div>
 
-        {/* Categories Grid */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <CategoryCard key={category.id} category={category} />
-            ))}
-          </div>
+          <p className="mx-auto mt-6 max-w-xl text-center text-base leading-relaxed text-[var(--ink-soft)]">
+            {categories.length} sections, {total} filed entries. Every tool lives in exactly one
+            section — pick the one closest to the job at hand.
+          </p>
+        </header>
+
+        {/* Sections as newspaper clippings */}
+        <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {categories.map((c, i) => (
+            <CategoryCard key={c.id} category={c} index={i} />
+          ))}
         </div>
       </div>
     </>

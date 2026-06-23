@@ -4,8 +4,8 @@
   "description": "Discover, compare, and choose from 2000+ AI tools across 50+ categories.",
   "start_url": "/",
   "display": "standalone",
-  "theme_color": "#7c3aed",
-  "background_color": "#ffffff",
+  "theme_color": "#131210",
+  "background_color": "#131210",
   "icons": [
     {
       "src": "/icon.svg",

@@ -1,15 +1,12 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
-import { CheckCircle, XCircle, ExternalLink, Star, ArrowRight } from 'lucide-react';
-import { aiTools, getToolBySlug } from '@/data/tools';
+import { getToolBySlug } from '@/data/tools';
 import { getCategoryBySlug } from '@/data/categories';
 import Breadcrumbs from '@/components/seo/Breadcrumbs';
 import StructuredData from '@/components/seo/StructuredData';
 import { generateWebPageSchema } from '@/lib/schema';
 import { formatDate, getPricingLabel } from '@/lib/utils';
-import { SITE_CONFIG } from '@/config/site';
 import { AITool } from '@/types';
 
 interface ComparePageProps {
@@ -186,13 +183,18 @@ export default async function ComparePage({ params }: ComparePageProps) {
     ],
   };
 
+  const yes = <span className="text-[var(--acc-text)]">Yes</span>;
+  const no = <span className="text-[var(--ink-faint)]">No</span>;
+
   const ComparisonRow = ({ label, valA, valB }: { label: string; valA: React.ReactNode; valB: React.ReactNode }) => (
-    <div className="grid grid-cols-3 gap-4 py-4 border-b border-gray-200 dark:border-gray-700">
-      <div className="text-sm font-medium text-gray-500 dark:text-gray-400">{label}</div>
-      <div className="text-sm text-gray-900 dark:text-white">{valA}</div>
-      <div className="text-sm text-gray-900 dark:text-white">{valB}</div>
+    <div className="rule-b grid grid-cols-3 gap-4 py-3.5">
+      <div className="mono text-[10px] uppercase tracking-[0.12em] text-[var(--ink-faint)]">{label}</div>
+      <div className="text-sm text-[var(--ink)]">{valA}</div>
+      <div className="text-sm text-[var(--ink)]">{valB}</div>
     </div>
   );
+
+  const lastReviewed = a.dateUpdated > b.dateUpdated ? a.dateUpdated : b.dateUpdated;
 
   return (
     <>
@@ -203,90 +205,92 @@ export default async function ComparePage({ params }: ComparePageProps) {
       })} />
       <StructuredData data={faqSchema} />
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Breadcrumbs
-              items={[
-                { label: 'Compare', href: '/compare' },
-                { label: `${a.name} vs ${b.name}`, href: `/compare/${slugA}-vs-${slugB}` },
-              ]}
-              variant="light"
-            />
-            <div className="mt-8 text-center">
-              <h1 className="text-3xl md:text-5xl font-bold text-white mb-4">
-                {a.name} <span className="text-white/60">vs</span> {b.name}
-              </h1>
-              <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto">
-                Side-by-side comparison: pricing, features, platforms, and our editorial verdict.
-              </p>
-              <p className="text-sm text-gray-400 mt-4">
-                Last reviewed: <time dateTime={a.dateUpdated > b.dateUpdated ? a.dateUpdated : b.dateUpdated}>
-                  {formatDate(a.dateUpdated > b.dateUpdated ? a.dateUpdated : b.dateUpdated)}
-                </time>
-              </p>
-            </div>
+      <article className="shell pt-8 pb-20">
+        <Breadcrumbs
+          items={[
+            { label: 'Compare', href: '/compare' },
+            { label: `${a.name} vs ${b.name}`, href: `/compare/${slugA}-vs-${slugB}` },
+          ]}
+        />
+
+        {/* Hero / title block */}
+        <header className="mt-8 max-w-3xl">
+          <p className="folio">№ — Head-to-Head</p>
+          <h1 className="display misprint mt-4 text-4xl text-[var(--ink)] md:text-6xl">
+            {a.name} <em className="display-it text-[var(--acc-text)]">vs</em> {b.name}
+          </h1>
+          <p className="mt-5 text-base leading-relaxed text-[var(--ink-soft)]">
+            Side-by-side comparison: pricing, features, platforms, and our editorial verdict.
+          </p>
+          <p className="mono mt-6 text-[10px] uppercase tracking-[0.12em] text-[var(--ink-faint)]">
+            Last reviewed{' '}
+            <time dateTime={lastReviewed}>{formatDate(lastReviewed)}</time>
+          </p>
+        </header>
+
+        {/* Tool panels — logo / VS / logo */}
+        <div className="rule-strong-t mt-12 grid items-stretch gap-0 pt-10 md:grid-cols-[1fr_auto_1fr]">
+          {[a, b].map((tool, idx) => {
+            const cat = getCategoryBySlug(tool.category);
+            return (
+              <div key={tool.id} className="border border-[var(--rule)] p-6">
+                <div className="flex items-start gap-4">
+                  <span className="grid h-14 w-14 flex-shrink-0 place-items-center border border-[var(--rule)] bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={tool.logo}
+                      alt={`${tool.name} logo`}
+                      className="h-9 w-9 object-contain"
+                    />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="mono text-[10px] uppercase tracking-[0.12em] text-[var(--ink-faint)]">
+                      {idx === 0 ? 'Contender A' : 'Contender B'}
+                    </p>
+                    <Link
+                      href={`/tools/${tool.slug}`}
+                      className="display mt-1 block text-2xl text-[var(--ink)] transition-colors hover:text-[var(--acc-text)]"
+                    >
+                      {tool.name}
+                    </Link>
+                    <p className="mono mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--ink-faint)]">
+                      {cat?.name}
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-4 text-sm leading-relaxed text-[var(--ink-soft)] line-clamp-3">
+                  {tool.tagline}
+                </p>
+                <a
+                  href={tool.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-ink btn-sm mt-5 inline-flex"
+                >
+                  Visit {tool.name} ↗
+                </a>
+              </div>
+            );
+          })}
+
+          {/* VS block — sits between the two panels */}
+          <div className="order-first grid place-items-center md:order-none md:-mx-4 md:py-0 py-4">
+            <span className="mono grid h-8 w-8 place-items-center bg-[var(--acc)] text-[10px] font-bold text-white">
+              VS
+            </span>
           </div>
         </div>
 
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Tool cards side by side */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
-            {[a, b].map((tool) => {
-              const cat = getCategoryBySlug(tool.category);
-              return (
-                <div
-                  key={tool.id}
-                  className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
-                >
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-16 h-16 relative rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
-                      <Image src={tool.logo} alt={`${tool.name} logo`} fill className="object-cover" sizes="64px" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <Link
-                        href={`/tools/${tool.slug}`}
-                        className="text-xl font-bold text-gray-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                      >
-                        {tool.name}
-                      </Link>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {cat?.name}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
-                    {tool.tagline}
-                  </p>
-                  <a
-                    href={tool.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-semibold rounded-lg hover:shadow-lg hover:shadow-purple-500/25 transition-all"
-                  >
-                    Visit {tool.name}
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Comparison table */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              At a glance
-            </h2>
-            <div className="grid grid-cols-3 gap-4 pb-3 border-b-2 border-gray-300 dark:border-gray-600 mb-2">
-              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"></div>
-              <div className="text-sm font-bold text-gray-900 dark:text-white">{a.name}</div>
-              <div className="text-sm font-bold text-gray-900 dark:text-white">{b.name}</div>
+        {/* At a glance — ruled comparison ledger */}
+        <section className="mt-12">
+          <h2 className="kicker">At a glance</h2>
+          <div className="mt-6 border border-[var(--rule)] p-6 sm:p-8">
+            <div className="rule-strong-t grid grid-cols-3 gap-4 pb-3.5 pt-3.5">
+              <div className="mono text-[10px] uppercase tracking-[0.12em] text-[var(--ink-faint)]" />
+              <div className="display text-base text-[var(--ink)]">{a.name}</div>
+              <div className="display text-base text-[var(--ink)]">{b.name}</div>
             </div>
-            <ComparisonRow
-              label="Pricing"
-              valA={priceCell(a)}
-              valB={priceCell(b)}
-            />
+            <ComparisonRow label="Pricing" valA={priceCell(a)} valB={priceCell(b)} />
             <ComparisonRow
               label="Pricing model"
               valA={getPricingLabel(a.pricing)}
@@ -294,38 +298,24 @@ export default async function ComparePage({ params }: ComparePageProps) {
             />
             <ComparisonRow
               label="Free tier"
-              valA={a.pricing.free ? <CheckCircle className="w-5 h-5 text-emerald-500" /> : <XCircle className="w-5 h-5 text-gray-400" />}
-              valB={b.pricing.free ? <CheckCircle className="w-5 h-5 text-emerald-500" /> : <XCircle className="w-5 h-5 text-gray-400" />}
+              valA={a.pricing.free ? yes : no}
+              valB={b.pricing.free ? yes : no}
             />
             <ComparisonRow
               label="Free trial"
-              valA={a.pricing.trial ? `${a.pricing.trialDays || 14} days` : <XCircle className="w-5 h-5 text-gray-400" />}
-              valB={b.pricing.trial ? `${b.pricing.trialDays || 14} days` : <XCircle className="w-5 h-5 text-gray-400" />}
+              valA={a.pricing.trial ? `${a.pricing.trialDays || 14} days` : no}
+              valB={b.pricing.trial ? `${b.pricing.trialDays || 14} days` : no}
             />
-            <ComparisonRow
-              label="Platforms"
-              valA={platformCell(a)}
-              valB={platformCell(b)}
-            />
+            <ComparisonRow label="Platforms" valA={platformCell(a)} valB={platformCell(b)} />
             <ComparisonRow
               label="Editor rating"
-              valA={
-                <span className="inline-flex items-center gap-1">
-                  <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                  <span className="font-semibold">{a.rating.average.toFixed(1)}</span>
-                </span>
-              }
-              valB={
-                <span className="inline-flex items-center gap-1">
-                  <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                  <span className="font-semibold">{b.rating.average.toFixed(1)}</span>
-                </span>
-              }
+              valA={<span className="mono font-semibold text-[var(--ink)]">★ {a.rating.average.toFixed(1)}</span>}
+              valB={<span className="mono font-semibold text-[var(--ink)]">★ {b.rating.average.toFixed(1)}</span>}
             />
             <ComparisonRow
               label="Featured"
-              valA={a.featured ? <CheckCircle className="w-5 h-5 text-emerald-500" /> : <span className="text-gray-400 text-xs">No</span>}
-              valB={b.featured ? <CheckCircle className="w-5 h-5 text-emerald-500" /> : <span className="text-gray-400 text-xs">No</span>}
+              valA={a.featured ? yes : no}
+              valB={b.featured ? yes : no}
             />
             <ComparisonRow
               label="Last reviewed"
@@ -333,21 +323,24 @@ export default async function ComparePage({ params }: ComparePageProps) {
               valB={<time dateTime={b.dateUpdated}>{formatDate(b.dateUpdated)}</time>}
             />
           </div>
+        </section>
 
-          {/* Features comparison */}
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
+        {/* Key features */}
+        <section className="mt-12">
+          <h2 className="kicker">Key features</h2>
+          <div className="mt-6 grid gap-0 md:grid-cols-2">
             {[a, b].map((tool) => (
-              <div
-                key={tool.id}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
-              >
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                  {tool.name} key features
-                </h3>
-                <ul className="space-y-2">
+              <div key={tool.id} className="border border-[var(--rule)] p-6">
+                <h3 className="display text-lg text-[var(--ink)]">{tool.name}</h3>
+                <ul className="mt-3">
                   {tool.features.core.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                      <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <li
+                      key={i}
+                      className="rule-b flex items-baseline gap-3 py-2.5 text-sm text-[var(--ink-soft)]"
+                    >
+                      <span className="mono flex-shrink-0 text-[10px] text-[var(--acc-text)]">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
                       {feature}
                     </li>
                   ))}
@@ -355,50 +348,60 @@ export default async function ComparePage({ params }: ComparePageProps) {
               </div>
             ))}
           </div>
+        </section>
 
-          {/* Verdict */}
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 sm:p-8 border border-purple-200 dark:border-purple-800 mb-8">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Editor&apos;s verdict
-            </h2>
-            <p className="text-base text-gray-700 dark:text-gray-300 mb-4">
-              <strong className="text-purple-700 dark:text-purple-300">Winner: {verdict.winner.name}.</strong> {verdict.reasoning}
+        {/* Verdict — editorial callout */}
+        <section className="mt-12">
+          <h2 className="kicker">Editor&apos;s verdict</h2>
+          <div className="mt-6 border-l-2 border-[var(--acc)] bg-[var(--paper-2)] px-6 py-5">
+            <p className="text-base leading-relaxed text-[var(--ink-soft)]">
+              <strong className="text-[var(--acc-text)]">Winner: {verdict.winner.name}.</strong>{' '}
+              {verdict.reasoning}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              See our <Link href="/methodology" className="text-purple-600 dark:text-purple-400 hover:underline">editorial methodology</Link> for how we score and rank tools.
+            <p className="mt-4 text-sm leading-relaxed text-[var(--ink-soft)]">
+              See our{' '}
+              <Link href="/methodology" className="u-link text-[var(--acc-text)]">
+                editorial methodology
+              </Link>{' '}
+              for how we score and rank tools.
             </p>
           </div>
+        </section>
 
-          {/* Recommended next */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Other comparisons you might want
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {FEATURED_COMBOS
-                .filter(([x, y]) => (x === slugA || x === slugB || y === slugA || y === slugB) && !(x === slugA && y === slugB))
-                .slice(0, 4)
-                .map(([x, y]) => {
-                  const tx = getToolBySlug(x);
-                  const ty = getToolBySlug(y);
-                  if (!tx || !ty) return null;
-                  return (
-                    <Link
-                      key={`${x}-${y}`}
-                      href={`/compare/${x}-vs-${y}`}
-                      className="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-gray-900 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors group"
-                    >
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">
-                        {tx.name} vs {ty.name}
-                      </span>
-                      <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" />
-                    </Link>
-                  );
-                })}
-            </div>
+        {/* Recommended next */}
+        <section className="rule-strong-t mt-16 pt-6">
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 className="display text-3xl text-[var(--ink)] md:text-4xl">More matchups</h2>
+            <span className="mono text-[10px] uppercase tracking-[0.12em] text-[var(--ink-faint)]">
+              Other comparisons
+            </span>
           </div>
-        </div>
-      </div>
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {FEATURED_COMBOS
+              .filter(([x, y]) => (x === slugA || x === slugB || y === slugA || y === slugB) && !(x === slugA && y === slugB))
+              .slice(0, 4)
+              .map(([x, y]) => {
+                const tx = getToolBySlug(x);
+                const ty = getToolBySlug(y);
+                if (!tx || !ty) return null;
+                return (
+                  <Link
+                    key={`${x}-${y}`}
+                    href={`/compare/${x}-vs-${y}`}
+                    className="news-plate group flex items-center justify-between px-4 py-4"
+                  >
+                    <span className="text-sm font-medium text-[var(--ink)] transition-colors group-hover:text-[var(--acc-text)]">
+                      {tx.name} vs {ty.name}
+                    </span>
+                    <span className="mono text-[10px] text-[var(--ink-faint)] transition-colors group-hover:text-[var(--acc-text)]">
+                      ↗
+                    </span>
+                  </Link>
+                );
+              })}
+          </div>
+        </section>
+      </article>
     </>
   );
 }

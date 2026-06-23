@@ -21,12 +21,30 @@ export const SITE_CONFIG: SiteConfig = {
   },
 };
 
-export const NAV_LINKS = [
+export interface NavChild {
+  label: string;
+  href: string;
+}
+export interface NavLink {
+  label: string;
+  href: string;
+  children?: NavChild[];
+}
+
+export const NAV_LINKS: NavLink[] = [
   { label: "Tools", href: "/tools" },
   { label: "Categories", href: "/categories" },
-  { label: "Compare", href: "/compare" },
   { label: "Collections", href: "/collections" },
-  { label: "Guides", href: "/guides" },
+  {
+    label: "Resources",
+    href: "/blog",
+    children: [
+      { label: "Blog", href: "/blog" },
+      { label: "Compare", href: "/compare" },
+      { label: "Guides", href: "/guides" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
   { label: "Submit", href: "/submit" },
 ];
 

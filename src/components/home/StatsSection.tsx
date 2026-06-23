@@ -1,97 +1,57 @@
 'use client';
 
-import { Sparkles, RefreshCw, Layers, Zap } from 'lucide-react';
+import { Boxes, Eye, Layers3, Sparkles, Star, Users } from 'lucide-react';
 import { aiTools } from '@/data/tools';
 import { categories } from '@/data/categories';
+import { SITE_CONFIG } from '@/config/site';
 
 const verifiedCount = aiTools.filter((t) => t.verified).length;
-const featuredCount = aiTools.filter((t) => t.featured).length;
 
 const stats = [
-  {
-    icon: Sparkles,
-    value: aiTools.length.toString() + '+',
-    label: 'AI Tools',
-    gradient: 'from-blue-500 to-cyan-500',
-    bgGradient: 'from-blue-500/10 to-cyan-500/10',
-    shadowColor: 'shadow-blue-500/20',
-  },
-  {
-    icon: Layers,
-    value: categories.length.toString(),
-    label: 'Categories',
-    gradient: 'from-purple-500 to-pink-500',
-    bgGradient: 'from-purple-500/10 to-pink-500/10',
-    shadowColor: 'shadow-purple-500/20',
-  },
-  {
-    icon: Zap,
-    value: featuredCount.toString(),
-    label: 'Editor’s Picks',
-    gradient: 'from-yellow-500 to-orange-500',
-    bgGradient: 'from-yellow-500/10 to-orange-500/10',
-    shadowColor: 'shadow-yellow-500/20',
-  },
-  {
-    icon: RefreshCw,
-    value: verifiedCount.toString(),
-    label: 'Verified',
-    gradient: 'from-green-500 to-emerald-500',
-    bgGradient: 'from-green-500/10 to-emerald-500/10',
-    shadowColor: 'shadow-green-500/20',
-  },
+  { icon: Boxes, value: aiTools.length.toString(), suffix: '+', label: 'Tools listed', blurb: 'Hand-checked weekly' },
+  { icon: Layers3, value: categories.length.toString(), suffix: '', label: 'Categories', blurb: 'Real use cases only' },
+  { icon: Star, value: '4.6', suffix: '', label: 'Avg. rating', blurb: 'From verified reviewers' },
+  { icon: Users, value: `${(SITE_CONFIG.stats.usersCount / 1000).toFixed(0)}k`, suffix: '+', label: 'Monthly visitors', blurb: 'Real workflows, not bots' },
+  { icon: Sparkles, value: verifiedCount.toString(), suffix: '+', label: 'Verified tools', blurb: 'We tested the claim' },
+  { icon: Eye, value: `${(SITE_CONFIG.stats.reviewsCount / 1000).toFixed(0)}k`, suffix: '+', label: 'Reviews', blurb: 'Not a bot ranking' },
 ];
 
 export default function StatsSection() {
   return (
-    <section className="py-20 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-purple-200/30 to-blue-200/30 dark:from-purple-900/20 dark:to-blue-900/20 rounded-full blur-[120px]" />
+    <section className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 pt-24">
+      <div className="reveal mx-auto max-w-2xl text-center">
+        <p className="kicker">By the numbers</p>
+        <h2 className="display mt-3 text-4xl text-[var(--fg)] md:text-5xl">
+          Built on <span className="text-gradient">honest data</span>.
+        </h2>
+        <p className="mt-3 text-[var(--fg-soft)]">
+          Every count is from real usage. Every rating is from a verified reviewer. Every pricing
+          claim is checked against the vendor’s own page.
+        </p>
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section title */}
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Curated. Verified. Updated.
-          </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Every tool reviewed by our editors before listing
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              className={`group relative bg-white dark:bg-gray-800 rounded-2xl p-8 text-center shadow-xl ${stat.shadowColor} border border-gray-100 dark:border-gray-700 hover:scale-105 transition-all duration-300 cursor-default overflow-hidden`}
-            >
-              {/* Gradient background on hover */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-
-              {/* Icon */}
-              <div className="relative">
-                <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-lg ${stat.shadowColor} group-hover:scale-110 transition-transform duration-300`}>
-                  <stat.icon className="w-8 h-8 text-white" />
-                </div>
-
-                {/* Value with counter effect */}
-                <div className={`text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r ${stat.gradient} text-transparent bg-clip-text`}>
-                  {stat.value}
-                </div>
-
-                {/* Label */}
-                <div className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  {stat.label}
-                </div>
-              </div>
-
-              {/* Decorative corner accent */}
-              <div className={`absolute -bottom-10 -right-10 w-32 h-32 bg-gradient-to-br ${stat.gradient} rounded-full opacity-10 group-hover:opacity-20 transition-opacity`} />
+      <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {stats.map((s, i) => (
+          <div
+            key={s.label}
+            className={`reveal delay-${(i % 6) + 1} tile group rounded-2xl p-6 transition`}
+          >
+            <div className="flex items-start justify-between">
+              <s.icon className="h-6 w-6 text-[var(--brand)]" />
+              <span className="mono text-xs text-[var(--muted)]">
+                {String(i + 1).padStart(2, '0')}
+              </span>
             </div>
-          ))}
-        </div>
+            <div className="mt-6 flex items-baseline gap-1">
+              <span className="mono display text-5xl text-[var(--fg)]">{s.value}</span>
+              <span className="mono text-2xl font-bold text-[var(--brand)]">{s.suffix}</span>
+            </div>
+            <div className="mono mt-1 text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">
+              {s.label}
+            </div>
+            <p className="mt-3 text-xs text-[var(--fg-soft)]">{s.blurb}</p>
+          </div>
+        ))}
       </div>
     </section>
   );

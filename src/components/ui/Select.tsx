@@ -20,7 +20,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="min-w-[160px]">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-[var(--ink-soft)] mb-1">
             {label}
           </label>
         )}
@@ -29,8 +29,8 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             className={cn(
               'w-full h-11 px-4 pr-10 rounded-xl',
-              'border-2 border-gray-200 dark:border-gray-700',
-              'bg-white dark:bg-gray-800',
+              'border-2 border-[var(--rule)]',
+              'bg-[var(--surface)]',
               'text-gray-700 dark:text-gray-200 text-sm font-medium',
               'hover:border-gray-300 dark:hover:border-gray-600',
               'focus:outline-none focus:border-purple-500 focus:ring-0',
