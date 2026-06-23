@@ -173,6 +173,46 @@ export interface FAQ {
   toolId?: string;
 }
 
+// Blog — AEO-first article model. Body is a block list so the template can
+// render answer-first prose, tables, and lists from structured data.
+export type BlogBlock =
+  | { type: 'p'; text: string }
+  | { type: 'h2'; text: string }
+  | { type: 'ul'; items: string[] }
+  | { type: 'ol'; items: string[] }
+  | { type: 'callout'; label: string; text: string }
+  | { type: 'table'; head: string[]; rows: string[][] };
+
+export interface BlogFAQ {
+  question: string;
+  answer: string;
+}
+
+export interface BlogPost {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  tldr: string; // answer-first summary box (AEO)
+  category: string; // display label, e.g. "Comparison"
+  tags: string[];
+  toolSlug?: string; // related tool (sidebar, related links)
+  coverIcon?: string; // distinct watermark icon key for the branded cover
+  relatedTools?: string[]; // tool slugs
+  relatedCompare?: string[]; // compare slugs, e.g. "chatgpt-vs-claude"
+  author: string;
+  datePublished: string;
+  dateUpdated: string;
+  readMinutes: number;
+  blocks: BlogBlock[];
+  faqs: BlogFAQ[];
+  seo: {
+    metaTitle: string;
+    metaDescription: string;
+    keywords: string[];
+  };
+}
+
 export interface SearchFilters {
   query?: string;
   categories?: string[];

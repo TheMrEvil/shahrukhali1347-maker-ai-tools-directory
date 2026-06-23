@@ -1,43 +1,55 @@
 'use client';
 
-import { Boxes, Layers3, Star, Users } from 'lucide-react';
+import { Boxes, Eye, Layers3, Sparkles, Star, Users } from 'lucide-react';
 import { aiTools } from '@/data/tools';
 import { categories } from '@/data/categories';
 import { SITE_CONFIG } from '@/config/site';
-import Counter from '@/components/Counter';
 
 const verifiedCount = aiTools.filter((t) => t.verified).length;
-const reviewCount = SITE_CONFIG.stats.reviewsCount;
 
 const stats = [
-  { icon: Boxes, value: aiTools.length, suffix: '+', label: 'Tools listed', from: '#a78bfa', to: '#6366f1' },
-  { icon: Layers3, value: categories.length, suffix: '', label: 'Categories', from: '#5eead4', to: '#0d9488' },
-  { icon: Users, value: Math.round(reviewCount / 1000), suffix: 'k+', label: 'Reviews', from: '#fbbf24', to: '#f59e0b' },
-  { icon: Star, value: verifiedCount, suffix: '+', label: 'Verified tools', from: '#fb7185', to: '#e11d48' },
+  { icon: Boxes, value: aiTools.length.toString(), suffix: '+', label: 'Tools listed', blurb: 'Hand-checked weekly' },
+  { icon: Layers3, value: categories.length.toString(), suffix: '', label: 'Categories', blurb: 'Real use cases only' },
+  { icon: Star, value: '4.6', suffix: '', label: 'Avg. rating', blurb: 'From verified reviewers' },
+  { icon: Users, value: `${(SITE_CONFIG.stats.usersCount / 1000).toFixed(0)}k`, suffix: '+', label: 'Monthly visitors', blurb: 'Real workflows, not bots' },
+  { icon: Sparkles, value: verifiedCount.toString(), suffix: '+', label: 'Verified tools', blurb: 'We tested the claim' },
+  { icon: Eye, value: `${(SITE_CONFIG.stats.reviewsCount / 1000).toFixed(0)}k`, suffix: '+', label: 'Reviews', blurb: 'Not a bot ranking' },
 ];
 
 export default function StatsSection() {
   return (
-    <section className="mt-20 border-y border-[var(--border)] bg-[var(--bg-soft)]">
-      <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px overflow-hidden bg-[var(--border)] md:grid-cols-4">
+    <section className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 pt-24">
+      <div className="reveal mx-auto max-w-2xl text-center">
+        <p className="kicker">By the numbers</p>
+        <h2 className="display mt-3 text-4xl text-[var(--fg)] md:text-5xl">
+          Built on <span className="text-gradient">honest data</span>.
+        </h2>
+        <p className="mt-3 text-[var(--fg-soft)]">
+          Every count is from real usage. Every rating is from a verified reviewer. Every pricing
+          claim is checked against the vendor’s own page.
+        </p>
+      </div>
+
+      <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {stats.map((s, i) => (
           <div
             key={s.label}
-            className={`reveal delay-${i + 1} group flex items-center gap-4 bg-[var(--bg-soft)] px-6 py-10 transition-colors hover:bg-[var(--surface)]`}
+            className={`reveal delay-${(i % 6) + 1} tile group rounded-2xl p-6 transition`}
           >
-            <div
-              className="grid h-12 w-12 place-items-center rounded-xl text-white shadow-soft transition-transform duration-300 group-hover:scale-110"
-              style={{ background: `linear-gradient(135deg, ${s.from}, ${s.to})` }}
-            >
-              <s.icon className="h-5 w-5 wobble" strokeWidth={2} />
+            <div className="flex items-start justify-between">
+              <s.icon className="h-6 w-6 text-[var(--brand)]" />
+              <span className="mono text-xs text-[var(--muted)]">
+                {String(i + 1).padStart(2, '0')}
+              </span>
             </div>
-            <div>
-              <div className="text-3xl font-semibold tracking-tight text-[var(--fg)]">
-                <Counter to={s.value} />
-                {s.suffix}
-              </div>
-              <div className="text-xs text-[var(--muted)]">{s.label}</div>
+            <div className="mt-6 flex items-baseline gap-1">
+              <span className="mono display text-5xl text-[var(--fg)]">{s.value}</span>
+              <span className="mono text-2xl font-bold text-[var(--brand)]">{s.suffix}</span>
             </div>
+            <div className="mono mt-1 text-[10px] uppercase tracking-[0.18em] text-[var(--muted)]">
+              {s.label}
+            </div>
+            <p className="mt-3 text-xs text-[var(--fg-soft)]">{s.blurb}</p>
           </div>
         ))}
       </div>

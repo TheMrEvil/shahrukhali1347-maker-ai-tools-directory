@@ -40,7 +40,7 @@ export default function Modal({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div
           className={cn(
-            'w-full bg-white dark:bg-gray-800 rounded-xl shadow-xl',
+            'w-full bg-[var(--surface)] rounded-xl shadow-xl',
             'transform transition-all',
             sizes[size]
           )}
@@ -48,8 +48,8 @@ export default function Modal({
         >
           {/* Header */}
           {title && (
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            <div className="flex items-center justify-between p-4 border-b border-[var(--rule)]">
+              <h3 className="text-lg font-semibold text-[var(--ink)]">
                 {title}
               </h3>
               <button

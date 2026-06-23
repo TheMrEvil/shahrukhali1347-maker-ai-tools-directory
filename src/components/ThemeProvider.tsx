@@ -9,7 +9,13 @@ interface ThemeProviderProps {
 
 export default function ThemeProvider({ children }: ThemeProviderProps) {
   return (
-    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem={false}
+      storageKey="ink-theme-v3"
+      disableTransitionOnChange
+    >
       {children}
     </NextThemesProvider>
   );

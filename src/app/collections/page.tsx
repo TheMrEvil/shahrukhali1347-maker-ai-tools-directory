@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Layers, ArrowRight, Sparkles, Zap, Brain, Rocket, Target, Users } from 'lucide-react';
+import { Sparkles, Zap, Brain, Rocket, Target, Users } from 'lucide-react';
 import Breadcrumbs from '@/components/seo/Breadcrumbs';
 import StructuredData from '@/components/seo/StructuredData';
 import { generateCollectionsListSchema, generateWebPageSchema } from '@/lib/schema';
@@ -29,7 +29,6 @@ const collections = [
     title: 'Best AI Tools for Startups',
     description: 'Essential AI tools to help startups scale faster with limited resources.',
     icon: Rocket,
-    color: 'from-orange-500 to-red-500',
     toolCount: 15,
     slug: 'startups',
   },
@@ -38,7 +37,6 @@ const collections = [
     title: 'AI Writing Assistants',
     description: 'Top tools for content creation, copywriting, and editing.',
     icon: Sparkles,
-    color: 'from-purple-500 to-pink-500',
     toolCount: 20,
     slug: 'writing-assistants',
   },
@@ -47,7 +45,6 @@ const collections = [
     title: 'AI for Developers',
     description: 'Code generation, debugging, and development productivity tools.',
     icon: Zap,
-    color: 'from-blue-500 to-cyan-500',
     toolCount: 18,
     slug: 'developers',
   },
@@ -56,7 +53,6 @@ const collections = [
     title: 'AI Marketing Stack',
     description: 'Complete marketing toolkit powered by artificial intelligence.',
     icon: Target,
-    color: 'from-green-500 to-emerald-500',
     toolCount: 22,
     slug: 'marketing',
   },
@@ -65,7 +61,6 @@ const collections = [
     title: 'AI for Teams',
     description: 'Collaboration and productivity tools for modern teams.',
     icon: Users,
-    color: 'from-indigo-500 to-purple-500',
     toolCount: 12,
     slug: 'teams',
   },
@@ -74,13 +69,14 @@ const collections = [
     title: 'AI Research Tools',
     description: 'Tools for academic research, data analysis, and insights.',
     icon: Brain,
-    color: 'from-pink-500 to-rose-500',
     toolCount: 16,
     slug: 'research',
   },
 ];
 
 export default function CollectionsPage() {
+  const total = collections.reduce((sum, c) => sum + c.toolCount, 0);
+
   return (
     <>
       {/* WebPage + CollectionPage schema for rich results */}
@@ -96,57 +92,67 @@ export default function CollectionsPage() {
         toolCount: c.toolCount,
       })))} />
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-purple-900 via-indigo-900 to-blue-900 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Breadcrumbs items={[{ label: 'Collections', href: '/collections' }]} variant="light" />
+      <div className="shell pt-8 pb-20">
+        <Breadcrumbs items={[{ label: 'Collections', href: '/collections' }]} />
 
-          <div className="mt-8 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full text-white/80 text-sm mb-6">
-              <Layers className="w-4 h-4" />
-              Curated Collections
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              AI Tool Collections
-            </h1>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Handpicked collections of AI tools organized by use case, industry, and workflow.
-            </p>
-          </div>
-        </div>
-      </div>
+        {/* Editorial hero */}
+        <header className="mt-8 max-w-3xl">
+          <p className="folio">№ 005 — Curated Sets</p>
+          <h1 className="display misprint mt-4 text-5xl text-[var(--ink)] md:text-7xl">
+            Built for
+            <br />
+            <em className="display-it u-wavy text-[var(--acc-text)]">the job.</em>
+          </h1>
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--ink-soft)]">
+            {collections.length} hand-assembled sets — {total} entries grouped by who you are and
+            what you&apos;re shipping. Start from a workflow instead of a blank index.
+          </p>
+        </header>
 
-      {/* Collections Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {collections.map((collection) => {
+        {/* Collections as newspaper clippings */}
+        <div className="rule-strong-t mt-12 grid grid-cols-1 gap-4 pt-8 sm:grid-cols-2 lg:grid-cols-3">
+          {collections.map((collection, i) => {
             const Icon = collection.icon;
             return (
               <Link
                 key={collection.id}
                 href={`/tools?collection=${collection.slug}`}
-                className="group bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                className="news-plate group flex h-full min-h-[15rem] flex-col"
               >
-                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${collection.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <Icon className="w-7 h-7 text-white" />
+                {/* Dateline band */}
+                <div className="mono flex items-center justify-between border-b border-[var(--rule)] px-5 py-2.5 text-[9px] uppercase tracking-[0.18em]">
+                  <span className="font-semibold text-[var(--acc-text)]">
+                    Set {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className="text-[var(--ink-faint)]">Curated</span>
                 </div>
 
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                  {collection.title}
-                </h2>
+                {/* Icon + headline + standfirst */}
+                <div className="flex flex-1 flex-col px-5 pt-5 pb-5">
+                  <div className="flex items-start gap-4">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center border border-[var(--rule)] text-[var(--ink)] transition-colors group-hover:border-[var(--ink-faint)]">
+                      <Icon className="h-5 w-5" strokeWidth={1.5} />
+                    </span>
+                    <h2 className="display text-balance text-[1.4rem] leading-[1.05] text-[var(--ink)] transition-colors group-hover:text-[var(--acc-text)]">
+                      <span className="u-link">{collection.title}</span>
+                    </h2>
+                  </div>
+                  <div className="hairline-x my-3.5" aria-hidden="true" />
+                  <p className="line-clamp-2 text-sm leading-relaxed text-[var(--ink-soft)]">
+                    {collection.description}
+                  </p>
+                </div>
 
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                  {collection.description}
-                </p>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    {collection.toolCount} tools
+                {/* Ruled footer: count + invert CTA */}
+                <div className="rule-t mono flex items-stretch text-[10px] uppercase tracking-[0.12em]">
+                  <span className="flex items-center gap-1.5 px-5 py-3 text-[var(--ink-soft)]">
+                    <span className="text-base font-bold leading-none text-[var(--ink)]">
+                      {collection.toolCount}
+                    </span>
+                    tools
                   </span>
-                  <span className="flex items-center gap-1 text-purple-600 dark:text-purple-400 text-sm font-medium group-hover:gap-2 transition-all">
-                    Explore
-                    <ArrowRight className="w-4 h-4" />
+                  <span className="ml-auto flex items-center border-l border-[var(--rule)] px-5 py-3 text-[var(--acc-text)] transition-colors group-hover:bg-[var(--ink)] group-hover:text-[var(--paper)]">
+                    Open the set ↗
                   </span>
                 </div>
               </Link>
@@ -154,7 +160,6 @@ export default function CollectionsPage() {
           })}
         </div>
       </div>
-    </div>
     </>
   );
 }

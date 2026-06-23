@@ -1,8 +1,6 @@
 import { Metadata } from 'next';
-import { Suspense } from 'react';
 import { aiTools } from '@/data/tools';
 import { categories } from '@/data/categories';
-import ToolGrid from '@/components/tools/ToolGrid';
 import Breadcrumbs from '@/components/seo/Breadcrumbs';
 import StructuredData from '@/components/seo/StructuredData';
 import { generateToolsListSchema, generateWebPageSchema } from '@/lib/schema';
@@ -40,33 +38,31 @@ export default async function ToolsPage({
       />
       <StructuredData data={generateToolsListSchema(aiTools)} />
 
-      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 pt-10 pb-20">
+      <div className="shell pt-8 pb-20">
         <Breadcrumbs items={[{ label: 'Tools', href: '/tools' }]} />
 
-        <header className="mt-6 max-w-2xl">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand)]">
-            Directory
-          </span>
-          <h1 className="mt-2 text-4xl font-semibold tracking-tight md:text-5xl">
-            All AI tools
+        <header className="mt-8 max-w-3xl">
+          <p className="folio">№ 002 — The Full Index</p>
+          <h1 className="display misprint mt-4 text-5xl text-[var(--ink)] md:text-7xl">
+            Every entry,
+            <br />
+            on <em className="display-it u-wavy text-[var(--acc-text)]">one page.</em>
           </h1>
-          <p className="mt-3 text-[var(--fg-soft)]">
-            Browse {aiTools.length}+ AI tools across {categories.length} categories. Filter by
-            pricing, sort by what you care about — no neon, no noise.
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-[var(--ink-soft)]">
+            All {aiTools.length} tools across {categories.length} sections. Filter as you type,
+            steer with the keyboard, and read each entry in the dock without leaving the list.
           </p>
         </header>
 
         <div className="mt-10">
-          <Suspense fallback={<ToolGrid tools={[]} isLoading={true} />}>
-            <ToolsPageClient
-              tools={aiTools}
-              categories={categories}
-              initialQuery={params.q}
-              initialCategory={params.category}
-              initialPricing={params.pricing}
-              initialSort={params.sort}
-            />
-          </Suspense>
+          <ToolsPageClient
+            tools={aiTools}
+            categories={categories}
+            initialQuery={params.q}
+            initialCategory={params.category}
+            initialPricing={params.pricing}
+            initialSort={params.sort}
+          />
         </div>
       </div>
     </>

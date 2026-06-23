@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X, TrendingUp } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { searchTools } from '@/lib/search';
 
 export default function SearchBar() {
@@ -12,24 +12,18 @@ export default function SearchBar() {
   const router = useRouter();
   const searchRef = useRef<HTMLDivElement>(null);
 
-  const trendingSearches = [
-    'AI chatbots',
-    'image generators',
-    'code assistants',
-    'video editing',
-  ];
+  const trendingSearches = ['AI chatbots', 'image generators', 'code assistants', 'video editing'];
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (query.trim()) {
         const results = searchTools(query);
-        setSuggestions(results.slice(0, 5).map(tool => tool.name));
+        setSuggestions(results.slice(0, 5).map((tool) => tool.name));
         setShowSuggestions(true);
       } else {
         setSuggestions([]);
       }
-    }, 300);
-
+    }, 250);
     return () => clearTimeout(timer);
   }, [query]);
 
@@ -39,7 +33,6 @@ export default function SearchBar() {
         setShowSuggestions(false);
       }
     }
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -52,79 +45,76 @@ export default function SearchBar() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSearch(query);
-  };
-
   return (
-    <div ref={searchRef} className="relative w-full max-w-2xl mx-auto">
-      <form onSubmit={handleSubmit}>
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+    <div ref={searchRef} className="relative w-full">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSearch(query);
+        }}
+      >
+        <div className="flex items-center border-b-2 border-[var(--rule-strong)] transition-colors focus-within:border-[var(--acc)]">
+          <span className="mono select-none pr-3 text-sm text-[var(--acc-text)]" aria-hidden="true">
+            ⌕
+          </span>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => setShowSuggestions(true)}
-            placeholder="Search 100+ AI tools..."
-            className="w-full pl-12 pr-12 py-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-primary-500 focus:outline-none transition-colors text-lg"
+            placeholder="Search the index — name, task, category…"
+            className="serif w-full bg-transparent py-3 text-lg italic text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
+            aria-label="Search tools"
           />
-          {query && (
-            <button
-              type="button"
-              onClick={() => {
-                setQuery('');
-                setSuggestions([]);
-              }}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              aria-label="Clear search"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          <button
+            type="submit"
+            className="mono flex items-center gap-1 pl-3 text-[11px] uppercase tracking-[0.14em] text-[var(--ink-soft)] transition-colors hover:text-[var(--acc-text)]"
+            aria-label="Search"
+          >
+            Go
+            <ArrowRight className="h-3.5 w-3.5" />
+          </button>
         </div>
       </form>
 
-      {/* Suggestions Dropdown */}
       {showSuggestions && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 max-h-96 overflow-y-auto z-50">
+        <div className="absolute left-0 right-0 top-full z-50 mt-px border border-[var(--rule-strong)] bg-[var(--paper)]">
           {suggestions.length > 0 ? (
-            <div className="p-2">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-3 py-2">
-                SUGGESTIONS
-              </p>
-              {suggestions.map((suggestion) => (
-                <button
-                  key={suggestion}
-                  onClick={() => handleSearch(suggestion)}
-                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <Search className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-900 dark:text-white">{suggestion}</span>
-                  </div>
-                </button>
+            <ul>
+              <li className="kicker rule-b px-4 py-2">Matches</li>
+              {suggestions.map((s, i) => (
+                <li key={s}>
+                  <button
+                    onClick={() => handleSearch(s)}
+                    className="row-invert flex w-full items-baseline gap-3 px-4 py-2.5 text-left"
+                  >
+                    <span className="row-num mono text-[10px] text-[var(--acc-text)]">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="serif text-base">{s}</span>
+                  </button>
+                </li>
               ))}
-            </div>
-          ) : !query && (
-            <div className="p-2">
-              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 px-3 py-2">
-                TRENDING SEARCHES
-              </p>
-              {trendingSearches.map((search) => (
-                <button
-                  key={search}
-                  onClick={() => handleSearch(search)}
-                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <TrendingUp className="w-4 h-4 text-primary-500" />
-                    <span className="text-gray-900 dark:text-white">{search}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
+            </ul>
+          ) : (
+            !query && (
+              <ul>
+                <li className="kicker rule-b px-4 py-2">Frequently consulted</li>
+                {trendingSearches.map((s, i) => (
+                  <li key={s}>
+                    <button
+                      onClick={() => handleSearch(s)}
+                      className="row-invert flex w-full items-baseline gap-3 px-4 py-2.5 text-left"
+                    >
+                      <span className="row-num mono text-[10px] text-[var(--acc-text)]">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span className="serif text-base">{s}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )
           )}
         </div>
       )}

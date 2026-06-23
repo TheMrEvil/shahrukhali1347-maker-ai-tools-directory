@@ -2,39 +2,51 @@
 
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { Sun, Moon, Monitor } from 'lucide-react';
 
+/**
+ * Paper / Ink switch — a segmented two-state toggle. The active stock is filled
+ * with ink so the choice reads clearly in both themes (the old single box
+ * blended into the light masthead).
+ */
 export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
 
-  if (!mounted) {
-    return (
-      <button className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
-        <div className="w-5 h-5" />
-      </button>
-    );
-  }
+  const isDark = mounted && resolvedTheme === 'dark';
 
-  const cycleTheme = () => {
-    if (theme === 'light') setTheme('dark');
-    else if (theme === 'dark') setTheme('system');
-    else setTheme('light');
-  };
+  const seg = (active: boolean) =>
+    `flex h-full items-center px-2.5 transition-colors ${
+      active
+        ? 'bg-[var(--ink)] text-[var(--paper)]'
+        : 'text-[var(--ink-soft)] hover:text-[var(--ink)]'
+    }`;
 
   return (
-    <button
-      onClick={cycleTheme}
-      className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
-      aria-label="Toggle theme"
+    <div
+      role="group"
+      aria-label="Theme"
+      className="mono flex h-9 items-stretch border border-[var(--rule-strong)] text-[10px] uppercase tracking-[0.14em]"
     >
-      {theme === 'light' && <Sun className="w-5 h-5 text-yellow-500" />}
-      {theme === 'dark' && <Moon className="w-5 h-5 text-blue-500" />}
-      {theme === 'system' && <Monitor className="w-5 h-5 text-gray-500" />}
-    </button>
+      <button
+        type="button"
+        onClick={() => setTheme('light')}
+        aria-pressed={mounted ? !isDark : undefined}
+        title="Switch to paper (light)"
+        className={seg(!isDark)}
+      >
+        Paper
+      </button>
+      <button
+        type="button"
+        onClick={() => setTheme('dark')}
+        aria-pressed={mounted ? isDark : undefined}
+        title="Switch to ink (dark)"
+        className={`-ml-px border-l border-[var(--rule-strong)] ${seg(isDark)}`}
+      >
+        Ink
+      </button>
+    </div>
   );
 }

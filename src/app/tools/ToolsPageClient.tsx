@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { Search, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { AITool, Category } from '@/types';
 import { searchTools } from '@/lib/search';
 import { applyFilters } from '@/lib/filters';
-import ToolGrid from '@/components/tools/ToolGrid';
+import { getPricingLabel } from '@/lib/utils';
+import ToolRow from '@/components/index/ToolRow';
 
 interface ToolsPageClientProps {
   tools: AITool[];
@@ -16,18 +18,19 @@ interface ToolsPageClientProps {
   initialSort?: string;
 }
 
-const sortOptions = [
-  { label: 'Most popular', value: 'popular' },
-  { label: 'Newest', value: 'newest' },
-  { label: 'Highest rated', value: 'rating' },
-  { label: 'Name A-Z', value: 'name' },
-];
+const SORTS = [
+  ['popular', 'Popular'],
+  ['rating', 'Rating'],
+  ['newest', 'Newest'],
+  ['name', 'A–Z'],
+] as const;
 
-const pricingOptions = [
-  { label: 'Free', value: 'free' },
-  { label: 'Freemium', value: 'freemium' },
-  { label: 'Paid', value: 'paid' },
-];
+const PRICINGS = [
+  ['', 'All'],
+  ['free', 'Free'],
+  ['freemium', 'Freemium'],
+  ['paid', 'Paid'],
+] as const;
 
 export default function ToolsPageClient({
   tools,
@@ -37,187 +40,306 @@ export default function ToolsPageClient({
   initialPricing = '',
   initialSort = 'popular',
 }: ToolsPageClientProps) {
+  const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedPricing, setSelectedPricing] = useState(initialPricing);
   const [sortBy, setSortBy] = useState(initialSort);
-  const [showFilters, setShowFilters] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const filteredTools = useMemo(() => {
     let result = query ? searchTools(query) : tools;
     result = applyFilters(result, {
       categories: selectedCategory ? [selectedCategory] : undefined,
-      pricing: selectedPricing
-        ? [selectedPricing as 'free' | 'freemium' | 'paid']
-        : undefined,
+      pricing: selectedPricing ? [selectedPricing as 'free' | 'freemium' | 'paid'] : undefined,
       sortBy: sortBy as 'popular' | 'newest' | 'rating' | 'name',
     });
     return result;
   }, [tools, query, selectedCategory, selectedPricing, sortBy]);
+
+  // Clamp the cursor when the result set shrinks.
+  useEffect(() => {
+    setActiveIdx((i) => Math.min(i, Math.max(0, filteredTools.length - 1)));
+  }, [filteredTools.length]);
+
+  // Keyboard: ↑/↓ or j/k to move, Enter to open the entry, V to visit the site.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const max = filteredTools.length - 1;
+      if (max < 0) return;
+
+      if (e.key === 'ArrowDown' || e.key === 'j') {
+        e.preventDefault();
+        setActiveIdx((i) => {
+          const next = Math.min(i + 1, max);
+          rowRefs.current[next]?.scrollIntoView({ block: 'nearest' });
+          return next;
+        });
+      } else if (e.key === 'ArrowUp' || e.key === 'k') {
+        e.preventDefault();
+        setActiveIdx((i) => {
+          const next = Math.max(i - 1, 0);
+          rowRefs.current[next]?.scrollIntoView({ block: 'nearest' });
+          return next;
+        });
+      } else if (e.key === 'Enter') {
+        const tool = filteredTools[activeIdx];
+        if (tool) router.push(`/tools/${tool.slug}`);
+      } else if (e.key === 'v' || e.key === 'V') {
+        const tool = filteredTools[activeIdx];
+        if (tool) window.open(tool.website, '_blank', 'noopener,noreferrer');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [filteredTools, activeIdx, router]);
 
   const clearFilters = () => {
     setQuery('');
     setSelectedCategory('');
     setSelectedPricing('');
     setSortBy('popular');
+    setActiveIdx(0);
   };
 
   const hasActive = query || selectedCategory || selectedPricing;
-  const activeCount = [query, selectedCategory, selectedPricing].filter(Boolean).length;
+  const docked = filteredTools[activeIdx] ?? filteredTools[0] ?? null;
 
-  return (
-    <div className="grid gap-8 md:grid-cols-[240px_1fr]">
-      <aside
-        className={`space-y-6 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 md:sticky md:top-20 md:h-fit ${
-          !showFilters ? 'hidden md:block' : ''
-        }`}
-      >
-        <FilterGroup label="Sort by">
-          <div className="flex flex-col gap-1">
-            {sortOptions.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => setSortBy(o.value)}
-                className={`rounded-md px-2 py-1.5 text-left text-sm transition ${
-                  sortBy === o.value
-                    ? 'bg-[var(--brand-soft)] font-medium text-[var(--brand-strong)]'
-                    : 'text-[var(--fg-soft)] hover:bg-[var(--bg-soft)]'
-                }`}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-        </FilterGroup>
-
-        <FilterGroup label="Category">
-          <div className="flex flex-col gap-1 max-h-72 overflow-y-auto pr-1">
-            <button
-              type="button"
-              onClick={() => setSelectedCategory('')}
-              className={`rounded-md px-2 py-1.5 text-left text-sm transition ${
-                !selectedCategory
-                  ? 'bg-[var(--brand-soft)] font-medium text-[var(--brand-strong)]'
-                  : 'text-[var(--fg-soft)] hover:bg-[var(--bg-soft)]'
-              }`}
-            >
-              All categories
-            </button>
-            {categories.map((c) => (
-              <button
-                key={c.id}
-                type="button"
-                onClick={() => setSelectedCategory(c.slug)}
-                className={`rounded-md px-2 py-1.5 text-left text-sm transition ${
-                  selectedCategory === c.slug
-                    ? 'bg-[var(--brand-soft)] font-medium text-[var(--brand-strong)]'
-                    : 'text-[var(--fg-soft)] hover:bg-[var(--bg-soft)]'
-                }`}
-              >
-                {c.name}
-              </button>
-            ))}
-          </div>
-        </FilterGroup>
-
-        <FilterGroup label="Pricing">
-          <div className="flex flex-wrap gap-1.5">
-            <Chip active={!selectedPricing} onClick={() => setSelectedPricing('')}>
-              All
-            </Chip>
-            {pricingOptions.map((p) => (
-              <Chip
-                key={p.value}
-                active={selectedPricing === p.value}
-                onClick={() => setSelectedPricing(p.value)}
-              >
-                {p.label}
-              </Chip>
-            ))}
-          </div>
-        </FilterGroup>
-
-        {hasActive && (
-          <button
-            onClick={clearFilters}
-            className="inline-flex items-center gap-1 text-xs font-medium text-[var(--fg-soft)] hover:text-[var(--brand)]"
-          >
-            <X className="h-3 w-3" /> Reset all
-          </button>
-        )}
-      </aside>
-
-      <div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative max-w-md flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--muted)]" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search tools…"
-              className="w-full rounded-full border border-[var(--border)] bg-[var(--surface)] py-2.5 pl-9 pr-4 text-sm outline-none transition focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/30"
-            />
-          </div>
-          <div className="flex items-center gap-2 text-sm text-[var(--fg-soft)]">
-            <span>{filteredTools.length} tools</span>
-            <button
-              onClick={() => setShowFilters((v) => !v)}
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 md:hidden"
-            >
-              Filters
-              {activeCount > 0 && (
-                <span className="rounded-full bg-[var(--brand)] px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                  {activeCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <ToolGrid
-            tools={filteredTools}
-            emptyMessage="No tools matched. Try clearing a filter."
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
-        {label}
-      </p>
-      {children}
-    </div>
-  );
-}
+      {/* Control bar */}
+      <div className="rule-strong-t rule-b bg-[var(--paper)] py-4">
+        <div className="flex flex-wrap items-end gap-x-8 gap-y-4">
+          {/* Filter */}
+          <div className="flex min-w-56 flex-1 items-center border-b border-[var(--rule-strong)] focus-within:border-[var(--acc)]">
+            <input
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setActiveIdx(0);
+              }}
+              placeholder="Filter the index…"
+              className="serif w-full bg-transparent py-1.5 italic text-[var(--ink)] outline-none placeholder:text-[var(--ink-faint)]"
+              aria-label="Filter tools"
+            />
+            <span className="mono whitespace-nowrap pl-3 text-[10px] uppercase tracking-[0.12em] text-[var(--acc-text)]">
+              {filteredTools.length} / {tools.length}
+            </span>
+          </div>
 
-function Chip({
-  children,
-  active,
-  onClick,
-}: {
-  children: React.ReactNode;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-        active
-          ? 'border-[var(--brand)] bg-[var(--brand)] text-white'
-          : 'border-[var(--border)] bg-[var(--surface)] text-[var(--fg-soft)] hover:border-[var(--brand)] hover:text-[var(--brand)]'
-      }`}
-    >
-      {children}
-    </button>
+          {/* Section */}
+          <label className="flex items-center gap-2">
+            <span className="kicker">Section</span>
+            <select
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setActiveIdx(0);
+              }}
+              className="mono cursor-pointer border border-[var(--rule)] bg-[var(--paper)] px-2 py-1.5 text-[11px] uppercase tracking-[0.1em] text-[var(--ink)] outline-none hover:border-[var(--ink-faint)]"
+            >
+              <option value="">All</option>
+              {categories.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          {/* Pricing segmented */}
+          <div className="flex items-center gap-2">
+            <span className="kicker">Pricing</span>
+            <div className="mono flex text-[10px] uppercase tracking-[0.1em]">
+              {PRICINGS.map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => {
+                    setSelectedPricing(val);
+                    setActiveIdx(0);
+                  }}
+                  className={`-ml-px border px-2.5 py-1.5 transition-colors first:ml-0 ${
+                    selectedPricing === val
+                      ? 'border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)]'
+                      : 'border-[var(--rule)] text-[var(--ink-soft)] hover:border-[var(--ink-faint)]'
+                  }`}
+                  aria-pressed={selectedPricing === val}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Sort segmented */}
+          <div className="flex items-center gap-2">
+            <span className="kicker">Sort</span>
+            <div className="mono flex text-[10px] uppercase tracking-[0.1em]">
+              {SORTS.map(([val, label]) => (
+                <button
+                  key={val}
+                  onClick={() => setSortBy(val)}
+                  className={`-ml-px border px-2.5 py-1.5 transition-colors first:ml-0 ${
+                    sortBy === val
+                      ? 'border-[var(--ink)] bg-[var(--ink)] text-[var(--paper)]'
+                      : 'border-[var(--rule)] text-[var(--ink-soft)] hover:border-[var(--ink-faint)]'
+                  }`}
+                  aria-pressed={sortBy === val}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {hasActive && (
+            <button
+              onClick={clearFilters}
+              className="u-link mono text-[10px] uppercase tracking-[0.12em] text-[var(--ink-faint)]"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+
+        {/* Keyboard hint */}
+        <p className="mono mt-3 hidden gap-3 text-[10px] uppercase tracking-[0.12em] text-[var(--ink-faint)] lg:flex">
+          <span className="kbd-hint">↑↓</span> navigate
+          <span className="kbd-hint">Enter</span> open entry
+          <span className="kbd-hint">V</span> visit site
+        </p>
+      </div>
+
+      {/* Index + dock */}
+      <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
+        <div>
+          {/* Column heads */}
+          <div className="mono rule-b hidden grid-cols-[3.25rem_2.25rem_1fr_6rem_5rem_6.5rem_2rem] gap-x-4 px-2 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--ink-faint)] md:grid">
+            <span>№</span>
+            <span />
+            <span>Entry</span>
+            <span>Rating</span>
+            <span>Reviews</span>
+            <span>Pricing</span>
+            <span />
+          </div>
+
+          {filteredTools.length === 0 ? (
+            <div className="rule-b py-16 text-center">
+              <p className="serif text-2xl italic text-[var(--ink-faint)]">
+                Nothing in the index matches.
+              </p>
+              <button onClick={clearFilters} className="btn-line mt-6">
+                Reset all filters
+              </button>
+            </div>
+          ) : (
+            filteredTools.map((tool, i) => (
+              <div
+                key={tool.id}
+                ref={(el) => {
+                  rowRefs.current[i] = el;
+                }}
+                className={i > 40 ? 'cv-auto' : undefined}
+              >
+                <ToolRow
+                  tool={tool}
+                  num={i + 1}
+                  active={i === activeIdx}
+                  onHover={() => setActiveIdx(i)}
+                />
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Preview dock — follows the cursor / keyboard like a card catalog drawer */}
+        <aside className="hidden lg:block">
+          {docked && (
+            <div className="sticky top-32 border border-[var(--rule-strong)]">
+              <div className="flag" aria-hidden="true" />
+              <div className="p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="grid h-12 w-12 place-items-center border border-[var(--rule)] bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={docked.logo} alt="" className="h-7 w-7 object-contain" />
+                  </span>
+                  <span className="mono text-right text-[10px] uppercase tracking-[0.12em] text-[var(--ink-faint)]">
+                    Entry {String(activeIdx + 1).padStart(3, '0')}
+                    <br />
+                    {docked.category.replace(/-/g, ' ')}
+                  </span>
+                </div>
+
+                <h2 className="display mt-4 text-3xl text-[var(--ink)]">{docked.name}</h2>
+                <p className="mt-2 text-sm italic leading-relaxed text-[var(--ink-soft)]">
+                  {docked.tagline}
+                </p>
+                <p className="mt-3 line-clamp-5 text-sm leading-relaxed text-[var(--ink-soft)]">
+                  {docked.description}
+                </p>
+
+                {/* Rating distribution — print bar chart */}
+                <div className="mt-5">
+                  <p className="kicker">Rating distribution</p>
+                  <div className="mt-2 space-y-1">
+                    {([5, 4, 3, 2, 1] as const).map((star) => {
+                      const pct = Math.round(
+                        (docked.rating.distribution[star] / Math.max(1, docked.rating.count)) * 100,
+                      );
+                      return (
+                        <div key={star} className="flex items-center gap-2">
+                          <span className="mono w-5 text-[10px] text-[var(--ink-faint)]">{star}★</span>
+                          <span className="h-2 flex-1 bg-[var(--paper-2)]">
+                            <span
+                              className="block h-full bg-[var(--acc)]"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </span>
+                          <span className="mono w-8 text-right text-[10px] text-[var(--ink-faint)]">
+                            {pct}%
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <dl className="mono mt-5 text-[10px] uppercase tracking-[0.1em]">
+                  {[
+                    ['Pricing', getPricingLabel(docked.pricing)],
+                    ['Platforms', docked.features.platforms.join(' · ')],
+                    ['Reviews', docked.rating.count.toLocaleString()],
+                  ].map(([k, v]) => (
+                    <div key={k} className="rule-t flex justify-between gap-3 py-2">
+                      <dt className="text-[var(--ink-faint)]">{k}</dt>
+                      <dd className="text-right text-[var(--ink)]">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+
+                <div className="mt-5 flex gap-2">
+                  <Link href={`/tools/${docked.slug}`} className="btn-ink flex-1 justify-center">
+                    Read entry
+                  </Link>
+                  <a
+                    href={docked.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-line flex-1 justify-center"
+                  >
+                    Visit ↗
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+        </aside>
+      </div>
+    </div>
   );
 }

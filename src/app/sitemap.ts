@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 import { aiTools } from '@/data/tools';
 import { categories } from '@/data/categories';
+import { guides } from '@/data/guides';
+import { blogPosts } from '@/data/blog';
 import { SITE_CONFIG } from '@/config/site';
 
 const COMPARE_COMBOS: Array<[string, string]> = [
@@ -79,5 +81,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  return [...homepage, ...corePages, ...comparePages, ...secondaryPages, ...legalPages, ...toolPages, ...categoryPages];
+  // Blog posts — high SEO/AEO value
+  const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: new Date(post.dateUpdated),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }));
+
+  // Guide pages
+  const guidePages: MetadataRoute.Sitemap = guides.map((guide) => ({
+    url: `${baseUrl}/guides/${guide.slug}`,
+    lastModified: new Date(guide.dateUpdated),
+    changeFrequency: 'monthly' as const,
+    priority: 0.6,
+  }));
+
+  return [...homepage, ...corePages, ...comparePages, ...secondaryPages, ...legalPages, ...toolPages, ...categoryPages, ...blogPages, ...guidePages];
 }

@@ -1,19 +1,13 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
-import { ExternalLink, CheckCircle, TrendingUp, Calendar } from 'lucide-react';
 import { aiTools, getToolBySlug, getRelatedTools } from '@/data/tools';
 import { getCategoryBySlug } from '@/data/categories';
 import Breadcrumbs from '@/components/seo/Breadcrumbs';
 import StructuredData from '@/components/seo/StructuredData';
-import Badge from '@/components/ui/Badge';
-import Button from '@/components/ui/Button';
-import Rating from '@/components/ui/Rating';
 import ToolCard from '@/components/tools/ToolCard';
 import { generateToolSchema, generateWebPageSchema } from '@/lib/schema';
 import { formatDate, getPricingLabel } from '@/lib/utils';
-import { SITE_CONFIG } from '@/config/site';
 
 interface ToolPageProps {
   params: Promise<{ slug: string }>;
@@ -50,13 +44,11 @@ export async function generateMetadata({ params }: ToolPageProps): Promise<Metad
       description,
       url: `/tools/${tool.slug}`,
       type: 'website',
-      // Images inherited from src/app/opengraph-image.tsx convention file (1200x630 branded)
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      // Images inherited from src/app/twitter-image.tsx convention file
     },
   };
 }
@@ -72,6 +64,7 @@ export default async function ToolPage({ params }: ToolPageProps) {
   const category = getCategoryBySlug(tool.category);
   const relatedTools = getRelatedTools(tool, 4);
   const pricingLabel = getPricingLabel(tool.pricing);
+  const entryNo = aiTools.findIndex((t) => t.slug === tool.slug) + 1;
 
   return (
     <>
@@ -83,256 +76,243 @@ export default async function ToolPage({ params }: ToolPageProps) {
       })} />
       <StructuredData data={generateToolSchema(tool)} />
 
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Breadcrumbs
-            items={[
-              { label: 'Tools', href: '/tools' },
-              { label: category?.name || tool.category, href: `/categories/${tool.category}` },
-              { label: tool.name, href: `/tools/${tool.slug}` },
-            ]}
-          />
+      <article className="shell pt-8 pb-20">
+        <Breadcrumbs
+          items={[
+            { label: 'Tools', href: '/tools' },
+            { label: category?.name || tool.category, href: `/categories/${tool.category}` },
+            { label: tool.name, href: `/tools/${tool.slug}` },
+          ]}
+        />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Header card */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <div className="flex flex-col sm:flex-row gap-6">
-                  {/* Logo */}
-                  <div className="w-24 h-24 relative rounded-xl overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700">
-                    <Image src={tool.logo} alt={`${tool.name} AI tool logo`} fill className="object-cover" sizes="96px" priority />
-                  </div>
+        {/* Entry head */}
+        <header className="mt-8 grid gap-8 lg:grid-cols-[1fr_300px]">
+          <div>
+            <div className="mono flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] uppercase tracking-[0.14em] text-[var(--ink-faint)]">
+              <span className="text-[var(--acc-text)]">Entry № {String(entryNo).padStart(3, '0')}</span>
+              {category && (
+                <Link href={`/categories/${category.slug}`} className="u-link">
+                  Filed under {category.name}
+                </Link>
+              )}
+              {tool.verified && <span>✓ Verified</span>}
+              {tool.trending && <span className="text-[var(--acc-text)]">▲ Trending</span>}
+            </div>
 
-                  {/* Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                        {tool.name}
-                      </h1>
-                      {tool.verified && (
-                        <Badge variant="success" icon={<CheckCircle className="w-3 h-3" />}>
-                          Verified
-                        </Badge>
-                      )}
-                      {tool.trending && (
-                        <Badge variant="warning" icon={<TrendingUp className="w-3 h-3" />}>
-                          Trending
-                        </Badge>
-                      )}
-                    </div>
-
-                    <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-                      {tool.tagline}
-                    </p>
-
-                    <div className="flex flex-wrap items-center gap-4 text-sm">
-                      <Rating
-                        value={tool.rating.average}
-                        size="md"
-                      />
-                      <Badge
-                        variant={pricingLabel === 'Free' ? 'success' : pricingLabel === 'Freemium' ? 'info' : 'default'}
-                      >
-                        {pricingLabel}
-                      </Badge>
-                      <Link
-                        href={`/categories/${tool.category}`}
-                        className="text-primary-600 dark:text-primary-400 hover:underline"
-                      >
-                        {category?.name || tool.category}
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <a
-                    href={tool.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 sm:flex-none"
-                  >
-                    <Button size="lg" className="w-full sm:w-auto">
-                      Visit Website
-                      <ExternalLink className="w-4 h-4 ml-2" />
-                    </Button>
-                  </a>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                  About {tool.name}
-                </h2>
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  {tool.fullDescription}
+            <div className="mt-5 flex items-start gap-5">
+              <span className="grid h-16 w-16 flex-shrink-0 place-items-center border border-[var(--rule)] bg-white md:h-20 md:w-20">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={tool.logo}
+                  alt={`${tool.name} logo`}
+                  className="h-10 w-10 object-contain md:h-12 md:w-12"
+                />
+              </span>
+              <div className="min-w-0">
+                <h1 className="display misprint text-4xl text-[var(--ink)] md:text-6xl">{tool.name}</h1>
+                <p className="serif mt-2 text-lg italic text-[var(--ink-soft)] md:text-xl">
+                  {tool.tagline}
                 </p>
-              </div>
-
-              {/* Features */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                  Key Features
-                </h2>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {tool.features.core.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                      <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Use Cases */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                  Use Cases
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {tool.useCases.map((useCase, index) => (
-                    <Badge key={index} variant="default" size="md">
-                      {useCase}
-                    </Badge>
-                  ))}
-                </div>
               </div>
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Pricing card */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                  Pricing
-                </h2>
-                <div className="space-y-4">
-                  {tool.pricing.plans.map((plan, index) => (
-                    <div
-                      key={index}
-                      className={`p-4 rounded-lg border-2 ${
-                        plan.popular
-                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                          : 'border-gray-200 dark:border-gray-700'
-                      }`}
-                    >
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-semibold text-gray-900 dark:text-white">
-                          {plan.name}
-                        </span>
-                        {plan.popular && (
-                          <Badge variant="info" size="sm">Popular</Badge>
-                        )}
-                      </div>
-                      <div className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                        {plan.price === 0 ? 'Free' : `$${plan.price}`}
-                        {plan.price > 0 && (
-                          <span className="text-sm font-normal text-gray-500">/{plan.interval}</span>
-                        )}
-                      </div>
-                      <ul className="space-y-1">
-                        {plan.features.slice(0, 3).map((feature, idx) => (
-                          <li key={idx} className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
-                            <CheckCircle className="w-3 h-3 text-green-500" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a href={tool.website} target="_blank" rel="noopener noreferrer" className="btn-ink">
+                Visit {tool.name} ↗
+              </a>
+              <Link href={`/tools?category=${tool.category}`} className="btn-line">
+                More like this
+              </Link>
+            </div>
 
-              {/* Tool info card */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                  Tool Info
-                </h2>
-                <div className="space-y-3">
-                  {tool.verified && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" />
-                        Status
-                      </span>
-                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                        Verified
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Added
-                    </span>
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      <time dateTime={tool.dateAdded}>{formatDate(tool.dateAdded)}</time>
-                    </span>
+            {/* Standfirst — a lead deck + filed-at-a-glance that fills the
+                column so it balances the tall record sidebar beside it. */}
+            <div className="rule-t mt-10 max-w-2xl pt-7">
+              <p className="serif text-lg italic leading-relaxed text-[var(--ink-soft)] md:text-xl">
+                {tool.description}
+              </p>
+              <dl className="mono mt-7 grid grid-cols-2 gap-x-8 gap-y-4 text-[10px] uppercase tracking-[0.12em] sm:grid-cols-4">
+                {[
+                  ['Filed under', category?.name ?? tool.category],
+                  ['Pricing', pricingLabel],
+                  ['Platforms', tool.features.platforms.join(' · ')],
+                  ['Last reviewed', formatDate(tool.dateUpdated)],
+                ].map(([k, v]) => (
+                  <div key={k} className="rule-t pt-2.5">
+                    <dt className="text-[var(--ink-faint)]">{k}</dt>
+                    <dd className="mt-1.5 tracking-normal text-[var(--ink)] [text-transform:none]">
+                      {v}
+                    </dd>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Last reviewed
-                    </span>
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      <time dateTime={tool.dateUpdated}>{formatDate(tool.dateUpdated)}</time>
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Platforms */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                  Available On
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {tool.features.platforms.map((platform) => (
-                    <Badge key={platform} variant="default" size="md">
-                      {platform.charAt(0).toUpperCase() + platform.slice(1)}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tags */}
-              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                  Tags
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {tool.tags.map((tag) => (
-                    <Link
-                      key={tag}
-                      href={`/tools?q=${encodeURIComponent(tag)}`}
-                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                    >
-                      {tag}
-                    </Link>
-                  ))}
-                </div>
-              </div>
+                ))}
+              </dl>
             </div>
           </div>
 
-          {/* Related tools */}
-          {relatedTools.length > 0 && (
-            <div className="mt-12">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                Similar Tools
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {relatedTools.map((relatedTool) => (
-                  <ToolCard key={relatedTool.id} tool={relatedTool} />
-                ))}
-              </div>
+          {/* Marginal record */}
+          <aside className="border-[var(--rule)] lg:border-l lg:pl-8">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="kicker">On record</p>
+              {tool.verified && <span className="stamp">Inspected</span>}
             </div>
-          )}
+            <dl className="mono mt-3 text-[11px] uppercase tracking-[0.1em]">
+              {[
+                ['Rating', `★ ${tool.rating.average.toFixed(1)} / 5`],
+                ['Reviews', tool.rating.count.toLocaleString()],
+                ['Pricing', pricingLabel],
+                ['Platforms', tool.features.platforms.join(' · ')],
+                ['Added', formatDate(tool.dateAdded)],
+                ['Last reviewed', formatDate(tool.dateUpdated)],
+              ].map(([k, v]) => (
+                <div key={k} className="rule-b flex items-baseline justify-between gap-4 py-2.5">
+                  <dt className="flex-shrink-0 text-[var(--ink-faint)]">{k}</dt>
+                  <dd className="text-right text-[var(--ink)]">{v}</dd>
+                </div>
+              ))}
+            </dl>
+
+            {/* Distribution */}
+            <p className="kicker mt-6">Rating distribution</p>
+            <div className="mt-2 space-y-1">
+              {([5, 4, 3, 2, 1] as const).map((star) => {
+                const pct = Math.round(
+                  (tool.rating.distribution[star] / Math.max(1, tool.rating.count)) * 100,
+                );
+                return (
+                  <div key={star} className="flex items-center gap-2">
+                    <span className="mono w-5 text-[10px] text-[var(--ink-faint)]">{star}★</span>
+                    <span className="h-2 flex-1 bg-[var(--paper-2)]">
+                      <span className="block h-full bg-[var(--acc)]" style={{ width: `${pct}%` }} />
+                    </span>
+                    <span className="mono w-8 text-right text-[10px] text-[var(--ink-faint)]">
+                      {pct}%
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </aside>
+        </header>
+
+        {/* Body */}
+        <div className="rule-strong-t mt-12 grid gap-12 pt-10 lg:grid-cols-[1fr_300px]">
+          <div className="min-w-0">
+            <section>
+              <h2 className="kicker">About</h2>
+              <p className="serif mt-4 max-w-2xl text-xl leading-relaxed text-[var(--ink)]">
+                {tool.fullDescription}
+              </p>
+            </section>
+
+            <section className="mt-12">
+              <h2 className="kicker">Key features</h2>
+              <ul className="mt-4 grid gap-x-10 sm:grid-cols-2">
+                {tool.features.core.map((feature, index) => (
+                  <li
+                    key={index}
+                    className="rule-b flex items-baseline gap-3 py-3 text-sm text-[var(--ink-soft)]"
+                  >
+                    <span className="mono flex-shrink-0 text-[10px] text-[var(--acc-text)]">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="mt-12">
+              <h2 className="kicker">Use cases</h2>
+              <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+                {tool.useCases.map((useCase) => (
+                  <span key={useCase} className="tag text-sm">
+                    {useCase}
+                  </span>
+                ))}
+              </p>
+            </section>
+
+            <section className="mt-12">
+              <h2 className="kicker">Tags</h2>
+              <p className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
+                {tool.tags.map((tag) => (
+                  <Link
+                    key={tag}
+                    href={`/tools?q=${encodeURIComponent(tag)}`}
+                    className="u-link mono text-xs uppercase tracking-[0.08em] text-[var(--ink-soft)]"
+                  >
+                    #{tag}
+                  </Link>
+                ))}
+              </p>
+            </section>
+          </div>
+
+          {/* Pricing ledger */}
+          <aside>
+            <h2 className="kicker">Pricing</h2>
+            <div className="mt-4 space-y-4">
+              {tool.pricing.plans.map((plan, index) => (
+                <div
+                  key={index}
+                  className={`border p-5 ${
+                    plan.popular
+                      ? 'border-[var(--acc)]'
+                      : 'border-[var(--rule)]'
+                  }`}
+                >
+                  <div className="mono flex items-baseline justify-between text-[10px] uppercase tracking-[0.12em]">
+                    <span className="text-[var(--ink-faint)]">{plan.name}</span>
+                    {plan.popular && <span className="text-[var(--acc-text)]">Most filed</span>}
+                  </div>
+                  <p className="mt-2">
+                    <span className="display text-3xl text-[var(--ink)]">
+                      {plan.price === 0 ? 'Free' : `$${plan.price}`}
+                    </span>
+                    {plan.price > 0 && (
+                      <span className="mono text-[11px] uppercase tracking-[0.1em] text-[var(--ink-faint)]">
+                        {' '}
+                        / {plan.interval}
+                      </span>
+                    )}
+                  </p>
+                  <ul className="mt-3">
+                    {plan.features.slice(0, 3).map((feature, idx) => (
+                      <li
+                        key={idx}
+                        className="rule-t flex items-baseline gap-2 py-2 text-xs text-[var(--ink-soft)]"
+                      >
+                        <span className="text-[var(--acc-text)]">—</span>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              <p className="mono text-[10px] uppercase tracking-[0.1em] leading-relaxed text-[var(--ink-faint)]">
+                Checked against the vendor’s page on {formatDate(tool.dateUpdated)}.
+              </p>
+            </div>
+          </aside>
         </div>
-      </div>
+
+        {/* Cross references */}
+        {relatedTools.length > 0 && (
+          <section className="rule-strong-t mt-16 pt-6">
+            <div className="flex items-baseline justify-between gap-4">
+              <h2 className="display text-3xl text-[var(--ink)] md:text-4xl">See also</h2>
+              <span className="mono text-[10px] uppercase tracking-[0.12em] text-[var(--ink-faint)]">
+                Cross-referenced entries
+              </span>
+            </div>
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {relatedTools.map((relatedTool) => (
+                <ToolCard key={relatedTool.id} tool={relatedTool} />
+              ))}
+            </div>
+          </section>
+        )}
+      </article>
     </>
   );
 }

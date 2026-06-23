@@ -17,7 +17,7 @@ export default function Skeleton({ className }: SkeletonProps) {
 
 export function ToolCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-700">
+    <div className="bg-[var(--surface)] rounded-xl overflow-hidden shadow-md border border-[var(--rule)]">
       <Skeleton className="h-48 w-full rounded-none" />
       <div className="p-5">
         <Skeleton className="h-6 w-3/4 mb-2" />
@@ -43,7 +43,7 @@ export function ToolCardSkeleton() {
 
 export function CategoryCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md">
+    <div className="bg-[var(--surface)] rounded-xl overflow-hidden shadow-md">
       <Skeleton className="h-32 w-full rounded-none" />
       <div className="p-4">
         <Skeleton className="h-5 w-3/4 mb-2" />

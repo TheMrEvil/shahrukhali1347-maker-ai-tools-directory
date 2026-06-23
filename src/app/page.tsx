@@ -1,11 +1,9 @@
 import { Metadata } from 'next';
 import HeroSection from '@/components/home/HeroSection';
-import ToolMarquee from '@/components/home/ToolMarquee';
 import FeaturedTools from '@/components/home/FeaturedTools';
-import RecentlyAdded from '@/components/home/RecentlyAdded';
+import HomeIndex from '@/components/home/HomeIndex';
 import CategoriesGrid from '@/components/home/CategoriesGrid';
-import TrendingTools from '@/components/home/TrendingTools';
-import StatsSection from '@/components/home/StatsSection';
+import FieldNotes from '@/components/home/FieldNotes';
 import NewsletterCTA from '@/components/home/NewsletterCTA';
 import StructuredData from '@/components/seo/StructuredData';
 import { generateFAQSchema, generateWebPageSchema } from '@/lib/schema';
@@ -43,12 +41,10 @@ export default function Home() {
       <StructuredData data={generateFAQSchema(faqs)} />
 
       <HeroSection />
-      <ToolMarquee />
       <FeaturedTools />
+      <HomeIndex />
       <CategoriesGrid />
-      <TrendingTools />
-      <RecentlyAdded />
-      <StatsSection />
+      <FieldNotes />
       <NewsletterCTA />
     </>
   );
